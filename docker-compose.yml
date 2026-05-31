@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  postgres-postgis:
+    image: postgis/postgis:15-3.3
+    container_name: smart_logistics_db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=smart_logistics
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=rootpassword
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - logistics-network
+    restart: always
+
+  # Sau này bạn có thể thêm dịch vụ Backend, Frontend, Redis vào dưới này...
+
+networks:
+  logistics-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
