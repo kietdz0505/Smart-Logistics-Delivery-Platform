@@ -1,6 +1,7 @@
 package com.smart.logistic.service;
 
 import com.smart.logistic.entity.RefreshToken;
+import com.smart.logistic.entity.User;
 import com.smart.logistic.repository.RefreshTokenRepository;
 import com.smart.logistic.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -27,20 +28,37 @@ public class RefreshTokenService {
     // Hàm tạo hoặc cập nhật Refresh Token cho User
     @Transactional
     public RefreshToken createRefreshToken(UUID userId) {
-        var user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User không tồn tại"));
 
-        // Nếu user đã có refresh token cũ, xóa nó đi để tạo cái mới
-        refreshTokenRepository.deleteByUser(user);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "User không tồn tại"
+                        ));
+
+        refreshTokenRepository.findByUser(user)
+                .ifPresent(refreshTokenRepository::delete);
+
+        refreshTokenRepository.flush();
 
         RefreshToken refreshToken = new RefreshToken();
+
         refreshToken.setUser(user);
-        refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));
-        refreshToken.setToken(UUID.randomUUID().toString());
 
-        return refreshTokenRepository.save(refreshToken);
+        refreshToken.setToken(
+                UUID.randomUUID().toString()
+        );
+
+        refreshToken.setExpiryDate(
+                Instant.now()
+                        .plusMillis(
+                                refreshTokenDurationMs
+                        )
+        );
+
+        return refreshTokenRepository.save(
+                refreshToken
+        );
     }
-
     // Hàm kiểm tra xem Refresh Token đã hết hạn chưa
     public RefreshToken verifyExpiration(RefreshToken token) {
         if (token.getExpiryDate().compareTo(Instant.now()) < 0) {

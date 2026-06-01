@@ -54,9 +54,7 @@ public class AuthController {
                 .map(refreshTokenService::verifyExpiration)
                 .map(com.smart.logistic.entity.RefreshToken::getUser)
                 .map(user -> {
-                    String accessToken = jwtUtil.generateToken(user.getPhone(), user.getRole().getName());
-
-                    java.util.Map<String, String> response = new java.util.HashMap<>();
+                    String accessToken = jwtUtil.generateToken(user.getId().toString(), user.getPhone(), user.getRole().getName());                    java.util.Map<String, String> response = new java.util.HashMap<>();
                     response.put("accessToken", accessToken);
                     response.put("refreshToken", requestRefreshToken);
                     return ResponseEntity.ok(response);

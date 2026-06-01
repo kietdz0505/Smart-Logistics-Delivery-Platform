@@ -1,5 +1,6 @@
 package com.smart.logistic.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.locationtech.jts.geom.Point;
@@ -21,10 +22,12 @@ public class Order {
 
     @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false)
+    @JsonIgnoreProperties({"orders", "password", "wallet"})
     private User customer;
 
     @ManyToOne
     @JoinColumn(name = "driver_id") // Nullable khi chưa có tài xế nào nhận
+    @JsonIgnoreProperties({"orders", "password", "wallet"})
     private User driver;
 
     @Column(name = "sender_name")

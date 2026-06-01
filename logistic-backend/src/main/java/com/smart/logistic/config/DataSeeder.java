@@ -21,18 +21,18 @@ public class DataSeeder implements CommandLineRunner {
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
     private final DriverProfileRepository driverProfileRepository;
-    private final WalletRepository walletRepository; // <-- Thêm vào đây
+    private final WalletRepository walletRepository;
     private final PasswordEncoder passwordEncoder;
 
     public DataSeeder(RoleRepository roleRepository,
                       UserRepository userRepository,
                       DriverProfileRepository driverProfileRepository,
-                      WalletRepository walletRepository, // <-- Thêm vào đây
+                      WalletRepository walletRepository,
                       PasswordEncoder passwordEncoder) {
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
         this.driverProfileRepository = driverProfileRepository;
-        this.walletRepository = walletRepository; // <-- Thêm vào đây
+        this.walletRepository = walletRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -45,7 +45,6 @@ public class DataSeeder implements CommandLineRunner {
                 role.setName(roleName);
                 roleRepository.save(role);
             }
-            System.out.println(">>>>> Đã khởi tạo các dữ liệu Role mẫu! <<<<<");
         }
 
         if (driverProfileRepository.count() == 0) {
@@ -56,7 +55,6 @@ public class DataSeeder implements CommandLineRunner {
             createMockDriver("0922222222", "Tài Xế Tầm Trung", "29A-22222", 105.8250, 21.0400, driverRole);
             createMockDriver("0933333333", "Tài Xế Quá Xa", "29A-33333", 105.7781, 21.0284, driverRole);
 
-            System.out.println(">>>>> Đã khởi tạo thành công 3 tài xế mẫu kèm ví tiền không gian! <<<<<");
         }
     }
 

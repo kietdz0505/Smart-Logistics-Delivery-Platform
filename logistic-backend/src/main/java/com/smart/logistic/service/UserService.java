@@ -65,16 +65,27 @@ public class UserService {
     }
 
     public LoginResponse login(LoginRequest request) {
-        User user = userRepository.findByPhone(request.getPhone())
-                .orElseThrow(() -> new RuntimeException("Số điện thoại hoặc mật khẩu không chính xác!"));
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Số điện thoại hoặc mật khẩu không chính xác!");
+        User user = userRepository.findByPhone(request.getPhone())
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Số điện thoại hoặc mật khẩu không chính xác!"
+                        ));
+
+        if (!passwordEncoder.matches(
+                request.getPassword(),
+                user.getPassword()
+        )) {
+            throw new RuntimeException(
+                    "Số điện thoại hoặc mật khẩu không chính xác!"
+            );
         }
 
-        String accessToken = jwtUtil.generateToken(user.getPhone(), user.getRole().getName());
-
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
+        String accessToken = jwtUtil.generateToken(user.getId().toString(), user.getPhone(), user.getRole().getName());
+        RefreshToken refreshToken =
+                refreshTokenService.createRefreshToken(
+                        user.getId()
+                );
 
         return new LoginResponse(
                 accessToken,

@@ -9,10 +9,7 @@ import com.smart.logistic.service.OrderService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -118,6 +115,65 @@ public class OrderController {
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/pending")
+    public ResponseEntity<?> getPendingOrders() {
+        try {
+            // Gọi Service lấy tất cả đơn hàng có trạng thái PENDING dưới DB
+            List<Order> pendingOrders = orderService.getOrdersByStatus("PENDING");
+
+            // Chuyển đổi danh sách Entity thành DTO sạch để tránh lỗi tuần hoàn JSON / Geometry Jackson
+            List<OrderResponse> result = new ArrayList<>();
+            for (Order order : pendingOrders) {
+                OrderResponse response = new OrderResponse();
+                response.setId(order.getId());
+                response.setSenderName(order.getSenderName());
+                response.setSenderPhone(order.getSenderPhone());
+                response.setReceiverName(order.getReceiverName());
+                response.setReceiverPhone(order.getReceiverPhone());
+                response.setPickupAddress(order.getPickupAddress());
+                response.setDeliveryAddress(order.getDeliveryAddress());
+                response.setDistanceKm(order.getDistanceKm());
+                response.setPrice(order.getPrice());
+                response.setStatus(order.getStatus());
+                response.setCreatedAt(order.getCreatedAt());
+
+                if (order.getPickupLocation() != null) {
+                    response.setPickupLongitude(order.getPickupLocation().getX());
+                    response.setPickupLatitude(order.getPickupLocation().getY());
+                }
+                if (order.getDeliveryLocation() != null) {
+                    response.setDeliveryLongitude(order.getDeliveryLocation().getX());
+                    response.setDeliveryLatitude(order.getDeliveryLocation().getY());
+                }
+                result.add(response);
+            }
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/complete")
+    public ResponseEntity<?> completeOrder(@RequestBody Map<String, String> request) {
+        try {
+            UUID orderId = UUID.fromString(request.get("orderId"));
+
+            orderService.completeOrder(orderId);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("message", "🏁 Đơn hàng đã được hoàn thành thành công!");
+            response.put("orderId", orderId);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
