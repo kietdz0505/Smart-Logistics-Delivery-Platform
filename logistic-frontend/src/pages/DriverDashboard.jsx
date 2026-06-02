@@ -1,43 +1,91 @@
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import axiosClient from '../api/axiosClient';
-import OrderList from '../components/OrderList';
+import OrderList from '../components/driver/OrderList';
+import DriverHistory from '../components/driver/DriverHistory';
+import DriverHeader from '../components/driver/DriverHeader';
+import DriverTabs from '../components/driver/DriverTabs';
 
 export default function DriverDashboard() {
     const { user, logout } = useContext(AuthContext);
     const [activeTab, setActiveTab] = useState('online');
     const [orders, setOrders] = useState([]);
     const [activeOrders, setActiveOrders] = useState([]);
+    const [historyOrders, setHistoryOrders] = useState([]);
+    const [walletBalance, setWalletBalance] = useState(0);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
 
+    // Lấy ID tự động từ JWT token đã decode thông qua Context
+    const finalDriverId = user?.id || user?.userId;
+
+    // 1. API LẤY SỐ DƯ VÍ
+    const fetchWallet = async () => {
+        if (!finalDriverId) return;
+        try {
+            const response = await axiosClient.get(`/orders/driver/${finalDriverId}/wallet`);
+            setWalletBalance(response.data.balance || 0);
+        } catch (err) {
+            console.error('Lỗi lấy ví tiền từ Backend:', err);
+        }
+    };
+
+    // 2. API LẤY ĐƠN HÀNG TRỰC TUYẾN (PENDING)
     const fetchPendingOrders = async () => {
-        setLoading(true);
-        setError('');
+        setLoading(true); setError('');
         try {
             const response = await axiosClient.get('/orders/pending');
-            setOrders(response.data);
+            setOrders(response.data || []);
         } catch (err) {
-            console.error('Lỗi lấy đơn thật từ Backend:', err);
-            setError('Không thể tải danh sách đơn thật. Đang hiển thị dữ liệu giả lập để test...');
-            setOrders([{ id: '8cbf2aec-813f-4936-a980-8ea913e9062e', senderName: 'Nguyễn Văn Khách', pickupAddress: 'Nhà hát Lớn Hà Nội', deliveryAddress: 'Hồ Hoàn Kiếm, Hà Nội', distanceKm: 1.2, price: 25000, status: 'PENDING' }]);
+            console.error('Lỗi tải đơn trực tuyến:', err);
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => {
-        if (activeTab === 'online') fetchPendingOrders();
-    }, [activeTab]);
+    // 3. API LẤY ĐƠN HÀNG ĐANG CHẠY (ACCEPTED)
+    const fetchActiveOrders = async () => {
+        try {
+            const response = await axiosClient.get(`/orders/driver/${finalDriverId}/active`);
+            setActiveOrders(response.data || []);
+        } catch (err) {
+            console.error("Lỗi lấy danh sách đơn đang chạy:", err);
+        }
+    };
 
+    // 4. API LẤY LỊCH SỬ CHUYẾN ĐI (COMPLETED)
+    const fetchHistoryOrders = async () => {
+        if (!finalDriverId) return;
+        setLoading(true); setError('');
+        try {
+            const response = await axiosClient.get(`/orders/driver/${finalDriverId}/history`);
+            setHistoryOrders(response.data || []);
+        } catch (err) {
+            console.error('Lỗi tải lịch sử:', err);
+            setError('Không thể tải lịch sử cuốc xe từ máy chủ.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Theo dõi thay đổi Tab và ID tài xế để gọi các API tương ứng
+    useEffect(() => {
+        if (finalDriverId) {
+            fetchWallet();
+            if (activeTab === 'online') fetchPendingOrders();
+            if (activeTab === 'active') fetchActiveOrders();
+            if (activeTab === 'history') fetchHistoryOrders();
+        }
+    }, [activeTab, finalDriverId]);
+
+    // XỬ LÝ NHẬN ĐƠN HÀNG
     const handleAcceptOrder = async (orderId) => {
         setMessage(''); setError('');
         try {
-            let finalDriverId = user?.userId || user?.id || "9be585fb-4a6e-4648-a0ec-605881505214";
             await axiosClient.post(`/orders/accept`, { orderId, driverId: finalDriverId });
+            setMessage(`🎉 Nhận đơn thành công! Khung bản đồ dẫn đường đã được kích hoạt.`);
 
-            setMessage(`🎉 Nhận đơn thành công! Hãy di chuyển tới điểm lấy hàng.`);
             const acceptedOrder = orders.find(o => o.id === orderId);
             if (acceptedOrder) {
                 setActiveOrders(prev => [{ ...acceptedOrder, status: 'ACCEPTED' }, ...prev]);
@@ -49,15 +97,46 @@ export default function DriverDashboard() {
         }
     };
 
+    // XỬ LÝ HỦY CUỐC XE PHÍA TÀI XẾ
+    const handleCancelOrder = async (orderId) => {
+        setLoading(true);
+        setError('');
+        setMessage('');
+        try {
+            await axiosClient.post('/orders/driver-cancel', {
+                orderId,
+                reason: "Tài xế báo hủy cuốc vì sự cố đột xuất"
+            });
+
+            setMessage('Đã hủy cuốc xe thành công. Đơn hàng đã được trả về hàng đợi chờ tài xế khác.');
+
+            setActiveOrders(activeOrders.filter(order => order.id !== orderId));
+
+            await fetchWallet();
+        } catch (err) {
+            console.error("Chi tiết lỗi hủy cuốc xe:", err);
+
+            if (err.response?.data && typeof err.response.data === 'object') {
+                const apiError = err.response.data.message || err.response.data.error || "Lỗi hệ thống (404/500)";
+                setError(apiError);
+            } else {
+                setError(err.response?.data || 'Không thể thực hiện yêu cầu hủy đơn lúc này.');
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // XỬ LÝ HOÀN THÀNH CHUYẾN ĐI
     const handleCompleteOrder = async (orderId) => {
         setLoading(true); setError(''); setMessage('');
         try {
             await axiosClient.post('/orders/complete', { orderId });
-            setMessage('🏁 Cuốc xe hoàn thành xuất sắc! Tiền cước đã được tất toán.');
+            setMessage('🏁 Cuốc xe hoàn thành xuất sắc! Tiền trung gian đã được giải phóng vào ví của bạn.');
             setActiveOrders(activeOrders.filter(order => order.id !== orderId));
+            await fetchWallet();
         } catch (err) {
             console.error("Chi tiết lỗi hoàn thành đơn:", err.response?.data);
-
             if (err.response?.data && typeof err.response.data === 'object') {
                 const apiError = err.response.data.message || err.response.data.error || JSON.stringify(err.response.data);
                 setError(`Lỗi hệ thống: ${apiError}`);
@@ -69,45 +148,57 @@ export default function DriverDashboard() {
         }
     };
 
+    // Guard Clause: Đợi Context xác thực xong thông tin tài xế
+    if (!finalDriverId) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-100">
+                <p className="text-gray-500 font-bold animate-pulse">Đang xác thực quyền tài xế...</p>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-slate-100 font-sans flex flex-col">
-            <header className="bg-white shadow-sm px-6 py-4 flex justify-between items-center border-b border-gray-200">
-                <div className="flex items-center space-x-3">
-                    <span className="text-2xl">🚖</span>
-                    <h1 className="text-xl font-black text-orange-600 tracking-wide">SMART LOGISTIC FOR DRIVER</h1>
-                </div>
-                <div className="flex items-center space-x-4">
-                    <div className="text-right">
-                        <p className="text-sm font-bold text-gray-800">{user?.fullName || 'Tài xế ẩn danh'}</p>
-                        <p className="text-xs text-orange-600 font-semibold">Tài xế đang trực tuyến</p>
-                    </div>
-                    <button onClick={logout} className="px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-medium hover:bg-red-100 transition">Đăng xuất</button>
-                </div>
-            </header>
+            {/* 1. COMPONENT HEADER */}
+            <DriverHeader user={user} walletBalance={walletBalance} onLogout={logout} />
 
             <main className="flex-1 p-6 max-w-5xl mx-auto w-full">
-                {/* THANH TAB */}
-                <div className="flex bg-white p-1.5 rounded-2xl shadow-sm border mb-6 max-w-md">
-                    <button onClick={() => setActiveTab('online')} className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition ${activeTab === 'online' ? 'bg-orange-600 text-white shadow-sm' : 'text-gray-600 hover:bg-slate-50'}`}>📡 Đơn trực tuyến ({orders.length})</button>
-                    <button onClick={() => setActiveTab('active')} className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition ${activeTab === 'active' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-600 hover:bg-slate-50'}`}>🚖 Đang chạy ({activeOrders.length})</button>
-                </div>
+                {/* 2. COMPONENT TABS SWITCHER */}
+                <DriverTabs
+                    activeTab={activeTab}
+                    setActiveTab={setActiveTab}
+                    counts={{ online: orders.length, active: activeOrders.length }}
+                />
 
+                {/* KHU VỰC TIÊU ĐỀ DƯỚI TAB */}
                 <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-extrabold text-gray-800">{activeTab === 'online' ? '📡 Danh sách cuốc xe đang chờ (Bán kính 5km)' : '📦 Các cuốc xe bạn đang vận chuyển'}</h2>
-                    {activeTab === 'online' && <button onClick={fetchPendingOrders} className="px-4 py-2 bg-white border border-gray-300 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">🔄 Làm mới</button>}
+                    <h2 className="text-xl font-extrabold text-gray-800">
+                        {activeTab === 'online' && '📡 Danh sách cuốc xe đang chờ (Bán kính 5km)'}
+                        {activeTab === 'active' && '📦 Các cuốc xe bạn đang vận chuyển'}
+                        {activeTab === 'history' && '📊 Nhật ký lịch sử cuốc xe hoàn thành'}
+                    </h2>
+                    {activeTab === 'online' && (
+                        <button onClick={fetchPendingOrders} className="px-4 py-2 bg-white border border-gray-300 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">🔄 Làm mới</button>
+                    )}
                 </div>
 
+                {/* THÔNG BÁO TRẠNG THÁI */}
                 {message && <div className="mb-4 bg-green-50 border border-green-200 text-green-700 p-4 rounded-xl text-sm font-semibold">✅ {message}</div>}
                 {error && <div className="mb-4 bg-red-50 border border-red-200 text-red-600 p-4 rounded-xl text-sm font-medium">⚠️ {error}</div>}
 
-                {/* GỌI COMPONENT LIST ĐÃ TÁCH */}
-                <OrderList
-                    orders={activeTab === 'online' ? orders : activeOrders}
-                    loading={loading}
-                    activeTab={activeTab}
-                    onAccept={handleAcceptOrder}
-                    onComplete={handleCompleteOrder}
-                />
+                {/* DANH SÁCH ĐƠN HÀNG THEO TAB */}
+                {activeTab === 'history' ? (
+                    <DriverHistory historyOrders={historyOrders} />
+                ) : (
+                    <OrderList
+                        orders={activeTab === 'online' ? orders : activeOrders}
+                        loading={loading}
+                        activeTab={activeTab}
+                        onAccept={handleAcceptOrder}
+                        onComplete={handleCompleteOrder}
+                        onCancel={handleCancelOrder}
+                    />
+                )}
             </main>
         </div>
     );

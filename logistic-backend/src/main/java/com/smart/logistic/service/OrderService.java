@@ -19,4 +19,12 @@ public interface OrderService {
     List<Order> getOrdersByStatus(String status);
 
     Order completeOrder(UUID orderId);
+
+    List<Order> getOrdersByDriverAndStatus(UUID driverId, String status);
+
+    Order customerCancelOrder(UUID orderId, String reason);
+
+    Order driverCancelOrder(UUID orderId, String reason);
+
+    List<Order> getOrdersByCustomer(UUID customerId);
 }

@@ -1,6 +1,6 @@
 import OrderCard from './OrderCard';
 
-export default function OrderList({ orders, loading, activeTab, onAccept, onComplete }) {
+export default function OrderList({ orders, loading, activeTab, onAccept, onComplete, onCancel }) {
     if (loading && activeTab === 'online') {
         return <div className="text-center py-12 text-gray-500 font-medium">Đang quét tìm cuốc xe mới xung quanh...</div>;
     }
@@ -24,6 +24,7 @@ export default function OrderList({ orders, loading, activeTab, onAccept, onComp
                     activeTab={activeTab} 
                     onAccept={onAccept} 
                     onComplete={onComplete} 
+                    onCancel={onCancel} 
                 />
             ))}
         </div>
