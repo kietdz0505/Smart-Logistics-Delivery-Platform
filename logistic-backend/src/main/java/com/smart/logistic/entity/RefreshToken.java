@@ -25,5 +25,5 @@ public class RefreshToken {
     private String token;
 
     @Column(nullable = false, name = "expiry_date")
-    private Instant expiryDate; // Thời điểm hết hạn
+    private Instant expiryDate;
 }

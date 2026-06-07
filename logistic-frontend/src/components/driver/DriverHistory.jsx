@@ -9,7 +9,6 @@ export default function DriverHistory({ historyOrders }) {
         );
     }
 
-    // Hàm nhỏ để format hiển thị thời gian LocalDateTime từ Java gửi về
     const formatTime = (isoString) => {
         if (!isoString) return "Vừa xong";
         const date = new Date(isoString);
@@ -18,7 +17,6 @@ export default function DriverHistory({ historyOrders }) {
 
     return (
         <div className="space-y-4">
-            {/* Thống kê doanh thu nhanh */}
             <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-6 rounded-2xl text-white shadow-md flex justify-between items-center">
                 <div>
                     <p className="text-xs font-bold opacity-80 uppercase tracking-widest">Tổng thu nhập hệ thống</p>
@@ -29,7 +27,6 @@ export default function DriverHistory({ historyOrders }) {
                 </div>
             </div>
 
-            {/* Danh sách cuốc xe cũ */}
             <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm text-gray-600">
@@ -52,7 +49,6 @@ export default function DriverHistory({ historyOrders }) {
                                         <p className="text-xs text-gray-500 truncate">🏁 {order.deliveryAddress}</p>
                                     </td>
                                     <td className="p-4 text-center text-xs text-gray-500 font-semibold">
-                                        {/* Sử dụng trường updatedAt khớp 100% với Backend thật */}
                                         {formatTime(order.updatedAt)} 
                                     </td>
                                     <td className="p-4 text-right font-black text-emerald-600 text-base">

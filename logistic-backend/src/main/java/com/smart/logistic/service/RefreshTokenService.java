@@ -14,7 +14,6 @@ import java.util.UUID;
 @Service
 public class RefreshTokenService {
 
-    // Refresh Token sống trong 7 ngày (tính bằng mili giây)
     private final long refreshTokenDurationMs = 7L * 24 * 60 * 60 * 1000;
 
     private final RefreshTokenRepository refreshTokenRepository;
@@ -25,7 +24,6 @@ public class RefreshTokenService {
         this.userRepository = userRepository;
     }
 
-    // Hàm tạo hoặc cập nhật Refresh Token cho User
     @Transactional
     public RefreshToken createRefreshToken(UUID userId) {
 
@@ -59,7 +57,7 @@ public class RefreshTokenService {
                 refreshToken
         );
     }
-    // Hàm kiểm tra xem Refresh Token đã hết hạn chưa
+
     public RefreshToken verifyExpiration(RefreshToken token) {
         if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
             refreshTokenRepository.delete(token);

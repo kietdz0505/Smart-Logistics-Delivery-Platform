@@ -14,18 +14,18 @@ public class OrderResponse {
     private String senderPhone;
     private String receiverName;
     private String receiverPhone;
-
-    // Trả về số thực thuần túy cho Frontend dễ dùng
     private double pickupLongitude;
     private double pickupLatitude;
     private String pickupAddress;
-
     private double deliveryLongitude;
     private double deliveryLatitude;
     private String deliveryAddress;
-
     private BigDecimal distanceKm;
     private BigDecimal price;
     private String status;
     private LocalDateTime createdAt;
+    private String driverName;
+    private String driverPhone;
+    private Double driverLatitude;
+    private Double driverLongitude;
 }

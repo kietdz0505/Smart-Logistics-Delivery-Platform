@@ -1,6 +1,6 @@
 package com.smart.logistic.service.impl;
 
-import com.smart.logistic.config.JwtUtil;
+import com.smart.logistic.utils.JwtUtil;
 import com.smart.logistic.dto.LoginRequest;
 import com.smart.logistic.dto.RegisterRequest;
 import com.smart.logistic.entity.RefreshToken;
@@ -40,15 +40,12 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     public User registerUser(RegisterRequest request) {
-        // 1. Kiểm tra trùng số điện thoại
         if (userRepository.existsByPhone(request.getPhone())) {
             throw new RuntimeException("Số điện thoại này đã được đăng ký!");
         }
 
-        // 2. Tìm Role tương ứng trong DB
         Role role = roleRepository.findByName(request.getRoleName()).orElseThrow(() -> new RuntimeException("Vai trò người dùng không hợp lệ!"));
 
-        // 3. Tạo thực thể User mới và mã hóa mật khẩu
         User user = new User();
         user.setPhone(request.getPhone());
         user.setPassword(passwordEncoder.encode(request.getPassword())); // Mã hóa BCrypt
@@ -57,7 +54,6 @@ public class UserServiceImpl implements UserService {
 
         User savedUser = userRepository.save(user);
 
-        // 4. Tự động kích hoạt ví tiền (Wallet) với số dư 0đ cho người dùng mới
         Wallet wallet = new Wallet();
         wallet.setUser(savedUser);
         wallet.setBalance(BigDecimal.ZERO);

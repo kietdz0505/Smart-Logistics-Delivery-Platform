@@ -1,4 +1,4 @@
-package com.smart.logistic.config;
+package com.smart.logistic.utils;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -17,7 +17,7 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String secret;
 
-    private final long accessTokenExpirationMs = 900000; // 15 phút
+    private final long accessTokenExpirationMs = 900000;
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(
@@ -43,6 +43,12 @@ public class JwtUtil {
                 .get("role", String.class);
     }
 
+    public Key getSigningKeyPublic() {
+        return Keys.hmacShaKeyFor(
+                secret.getBytes(StandardCharsets.UTF_8)
+        );
+    }
+
     public boolean validateToken(String token) {
 
         try {
@@ -61,7 +67,6 @@ public class JwtUtil {
         }
     }
 
-    // Thêm tham số id vào đầu hàm
     public String generateToken(String id, String phone, String role) {
 
         return Jwts.builder()

@@ -12,7 +12,7 @@ export default function OrderSummary({ createdOrder }) {
                 </p>
 
                 <p>
-                    <b>Khoảng cách (Tự động):</b>{' '}
+                    <b>Khoảng cách :</b>{' '}
                     <span className="font-bold text-gray-800">
                         {createdOrder.distanceKm} km
                     </span>

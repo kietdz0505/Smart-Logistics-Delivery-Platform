@@ -8,7 +8,7 @@ import java.util.UUID;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
-    // Kiểm tra trùng số điện thoại khi đăng ký
+
     boolean existsByPhone(String phone);
     Optional<User> findByPhone(String phone);
     Optional<User> findById(UUID id);

@@ -8,6 +8,6 @@ import java.util.UUID;
 @Getter
 @Setter
 public class TopUpRequest {
-    private UUID userId;       // ID của khách hàng cần nạp tiền
-    private BigDecimal amount; // Số tiền muốn nạp vào ví
+    private UUID userId;
+    private BigDecimal amount;
 }

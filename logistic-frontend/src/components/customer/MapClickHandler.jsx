@@ -33,7 +33,6 @@ export default function MapClickHandler({
             const lat = e.latlng.lat;
             const lng = e.latlng.lng;
 
-            // Update marker ngay lập tức
             if (currentMode === 'pickup') {
                 setPickupLat(lat);
                 setPickupLng(lng);
@@ -46,7 +45,6 @@ export default function MapClickHandler({
                 setDeliveryAddress('Đang lấy địa chỉ...');
             }
 
-            // Chạy reverse geocoding nền
             const address = await reverseGeocode(lat, lng);
 
             if (!address) {
@@ -63,7 +61,6 @@ export default function MapClickHandler({
                 return;
             }
 
-            // Cập nhật địa chỉ sau khi API trả về
             if (currentMode === 'pickup') {
                 setPickupAddress(address);
             } else {

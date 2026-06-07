@@ -31,7 +31,7 @@ export default function DeliveryMap({
     setRouteInfo
 }) {
     return (
-        <div className="bg-gray-200 rounded-2xl overflow-hidden shadow-sm border border-gray-100 h-[45vh] min-h-[350px]">
+        <div className="bg-gray-200 rounded-2xl overflow-hidden shadow-sm border border-gray-100 h-[80vh] min-h-[350px]">
             <MapContainer
                 center={[21.0285, 105.8542]}
                 zoom={14}

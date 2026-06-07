@@ -1,5 +1,6 @@
 package com.smart.logistic.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,13 +21,17 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Version
+    @Column(nullable = false)
+    private Long version = 0L;
+
     @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false)
     @JsonIgnoreProperties({"orders", "password", "wallet"})
     private User customer;
 
     @ManyToOne
-    @JoinColumn(name = "driver_id") // Nullable khi chưa có tài xế nào nhận
+    @JoinColumn(name = "driver_id")
     @JsonIgnoreProperties({"orders", "password", "wallet"})
     private User driver;
 
@@ -42,10 +47,11 @@ public class Order {
     @Column(name = "receiver_phone")
     private String receiverPhone;
 
-    // PostGIS Point để lưu Tọa độ địa lý (Kinh độ/Vĩ độ)
+    @JsonIgnore
     @Column(name = "pickup_location", columnDefinition = "geometry(Point,4326)")
     private Point pickupLocation;
 
+    @JsonIgnore
     @Column(name = "delivery_location", columnDefinition = "geometry(Point,4326)")
     private Point deliveryLocation;
 
@@ -60,8 +66,9 @@ public class Order {
 
     private BigDecimal price;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status; // "PENDING", "ACCEPTED", "PICKED_UP", "COMPLETED", "CANCELLED"
+    private OrderStatus status;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

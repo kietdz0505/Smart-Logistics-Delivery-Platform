@@ -9,5 +9,5 @@ public class RegisterRequest {
     private String phone;
     private String password;
     private String fullName;
-    private String roleName; // Khách hàng truyền lên "ROLE_CUSTOMER" hoặc "ROLE_DRIVER"
+    private String roleName;
 }

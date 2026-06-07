@@ -1,12 +1,15 @@
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import axiosClient from '../api/axiosClient';
-
+import useWallet from '../hooks/useWallet';
 import CustomerHeader from '../components/customer/CustomerHeader';
 import CreateOrderForm from '../components/customer/CreateOrderForm';
 import DeliveryMap from '../components/customer/DeliveryMap';
 import OrdersList from '../components/customer/OrdersList';
 import OrderSummary from '../components/customer/OrderSummary';
+
+import SockJS from 'sockjs-client';
+import Stomp from 'stompjs';
 
 export default function CustomerDashboard() {
     const { user, logout } = useContext(AuthContext);
@@ -31,26 +34,22 @@ export default function CustomerDashboard() {
         user?.phone || ''
     );
 
-    const [receiverName, setReceiverName] = useState('');
-    const [receiverPhone, setReceiverPhone] = useState('');
+    const [receiverName, setReceiverName] = useState('Nguyễn Văn A');
+    const [receiverPhone, setReceiverPhone] = useState('0987654320');
 
-    const [pickupAddress, setPickupAddress] = useState(
-        'Nhà hát Lớn Hà Nội'
-    );
+    const [pickupAddress, setPickupAddress] = useState('Hiệp Thành 13, Khu phố 54, Phường Tân Thới Hiệp, Thuận An, Thành phố Hồ Chí Minh, 71716, Việt Nam');
 
-    const [pickupLat, setPickupLat] = useState(21.0245);
-    const [pickupLng, setPickupLng] = useState(105.8566);
+    const [pickupLat, setPickupLat] = useState(10.88073);
+    const [pickupLng, setPickupLng] = useState(106.63917);
 
-    const [deliveryAddress, setDeliveryAddress] = useState(
-        'Hồ Hoàn Kiếm, Hà Nội'
-    );
+    const [deliveryAddress, setDeliveryAddress] = useState('Trường Đại học Mở Thành phố Hồ Chí Minh - Nhơn Đức, Hẻm 1734/30 Lê Văn Lương, Ấp 7, Xã Hiệp Phước, Thành phố Hồ Chí Minh, 71812, Việt Nam');
 
-    const [deliveryLat, setDeliveryLat] = useState(21.0285);
-    const [deliveryLng, setDeliveryLng] = useState(105.8525);
+    const [deliveryLat, setDeliveryLat] = useState(10.67905);
+    const [deliveryLng, setDeliveryLng] = useState(106.69088);
 
     const [mapCenter, setMapCenter] = useState({
-        lat: 21.0285,
-        lng: 105.8542
+        lat: 10.88073,
+        lng: 106.63917
     });
 
     const [mode, setMode] = useState('pickup');
@@ -58,13 +57,14 @@ export default function CustomerDashboard() {
     const [loading, setLoading] = useState(false);
     const [createdOrder, setCreatedOrder] = useState(null);
     const [error, setError] = useState('');
+    const { walletBalance, fetchWalletBalance } = useWallet();
 
     const fetchMyOrders = async (silent = false) => {
         if (!silent) setListLoading(true);
 
         try {
             const response = await axiosClient.get(
-                `/orders/customer/${finalCustomerId}/history`
+                `/orders/customer/history`
             );
 
             setMyOrders(response.data || []);
@@ -80,13 +80,54 @@ export default function CustomerDashboard() {
 
     useEffect(() => {
         fetchMyOrders();
-
-        const interval = setInterval(() => {
-            fetchMyOrders(true);
-        }, 5000);
-
-        return () => clearInterval(interval);
+        fetchWalletBalance();
     }, []);
+
+    useEffect(() => {
+        if (!user?.id || user.id === 'Khách-hàng-UUID-Test') return;
+
+        const socket = new SockJS('http://localhost:8080/ws');
+        const stompClient = Stomp.over(socket);
+
+        stompClient.debug = null;
+
+        stompClient.connect({}, () => {
+            console.log('KẾT NỐI REAL-TIME THÀNH CÔNG: Đang lắng nghe cập nhật đơn hàng...');
+
+            stompClient.subscribe(`/topic/orders/customer/${user.id}`, (message) => {
+                if (message.body) {
+                    const updatedOrder = JSON.parse(message.body);
+                    console.log('Nhận được cập nhật trạng thái đơn hàng từ Backend:', updatedOrder);
+
+                    setMyOrders((prevOrders) => {
+                        if (prevOrders.some(order => order.id === updatedOrder.id)) {
+                            return prevOrders.map(order =>
+                                order.id === updatedOrder.id ? updatedOrder : order
+                            );
+                        }
+                        return [updatedOrder, ...prevOrders];
+                    });
+
+                    if (updatedOrder.status === 'ACCEPTED') {
+                        fetchMyOrders(true);
+                    }
+
+                    if (updatedOrder.status === 'COMPLETED' || updatedOrder.status === 'CANCELLED') {
+                        fetchWalletBalance();
+                    }
+                }
+            });
+        }, (error) => {
+            console.error('WebSocket lỗi kết nối, hệ thống sẽ chạy chế độ dự phòng:', error);
+        });
+
+        return () => {
+            if (stompClient && stompClient.connected) {
+                stompClient.disconnect();
+                console.log('Đã ngắt kết nối đường dây nóng WebSocket.');
+            }
+        };
+    }, [user?.id, fetchWalletBalance]);
 
     const handleCreateOrder = async (e) => {
         e.preventDefault();
@@ -95,6 +136,7 @@ export default function CustomerDashboard() {
         setError('');
         setActionMessage('');
         setCreatedOrder(null);
+        console.log(routeInfo);
 
         const orderPayload = {
             phone: user?.phone,
@@ -111,6 +153,8 @@ export default function CustomerDashboard() {
             deliveryLongitude: deliveryLng,
             deliveryLatitude: deliveryLat,
 
+            distanceKm: routeInfo?.distanceKm || 0,
+
             customerId: finalCustomerId
         };
 
@@ -123,13 +167,13 @@ export default function CustomerDashboard() {
             setCreatedOrder(response.data);
 
             setActionMessage(
-                '🎉 Đã gửi yêu cầu giao vận thành công! Đang đợi tài xế phản hồi...'
+                'Đã gửi yêu cầu giao vận thành công! Đang đợi tài xế phản hồi...'
             );
 
             setReceiverName('');
             setReceiverPhone('');
 
-            fetchMyOrders();
+            fetchWalletBalance();
         } catch (err) {
             console.error(
                 'Chi tiết lỗi tạo đơn:',
@@ -169,7 +213,7 @@ export default function CustomerDashboard() {
         setError('');
 
         try {
-            await axiosClient.post(
+            await axiosClient.put(
                 '/orders/customer-cancel',
                 {
                     orderId,
@@ -179,10 +223,10 @@ export default function CustomerDashboard() {
             );
 
             setActionMessage(
-                '⚠️ Đã hủy đơn hàng thành công! Hệ thống đã tự động hoàn lại tiền vào ví của bạn.'
+                'Đã hủy đơn hàng thành công! Hệ thống đã tự động hoàn lại tiền vào ví của bạn.'
             );
 
-            fetchMyOrders();
+            -            fetchWalletBalance();
         } catch (err) {
             setError(
                 err.response?.data ||
@@ -197,6 +241,7 @@ export default function CustomerDashboard() {
         <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
             <CustomerHeader
                 user={user}
+                walletBalance={walletBalance}
                 logout={logout}
             />
 

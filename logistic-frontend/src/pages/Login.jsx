@@ -17,9 +17,8 @@ export default function Login() {
     setError('');
     try {
       const response = await axiosClient.post('/auth/login', { phone, password });
-      login(response.data); // Lưu vào Context
+      login(response.data);
       
-      // Điều hướng dựa trên Vai trò (Role) trả về từ Backend
       if (response.data.role === 'ROLE_CUSTOMER') {
         navigate('/customer');
       } else if (response.data.role === 'ROLE_DRIVER') {

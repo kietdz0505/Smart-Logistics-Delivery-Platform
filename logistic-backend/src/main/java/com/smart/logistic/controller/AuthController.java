@@ -1,6 +1,6 @@
 package com.smart.logistic.controller;
 
-import com.smart.logistic.config.JwtUtil;
+import com.smart.logistic.utils.JwtUtil;
 import com.smart.logistic.dto.LoginRequest;
 import com.smart.logistic.dto.LoginResponse;
 import com.smart.logistic.dto.RegisterRequest;
@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/auth") // Tiền tố URL của API
+@RequestMapping("/api/auth")
 public class AuthController {
 
     private final UserService userService;
@@ -28,7 +28,6 @@ public class AuthController {
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         try {
             User registeredUser = userService.registerUser(request);
-            // Không nên trả về password về client vì lý do bảo mật
             registeredUser.setPassword("[PROTECTED]");
             return ResponseEntity.ok(registeredUser);
         } catch (Exception e) {

@@ -8,10 +8,8 @@ import java.util.Map;
 @Component
 public class DriverMapper {
 
-
     public Map<String, Object> toNearbyDriverMap(DriverProfile driver) {
         if (driver == null) return null;
-
         Map<String, Object> map = new HashMap<>();
         map.put("driverId", driver.getId());
         map.put("fullName", driver.getUser() != null ? driver.getUser().getFullName() : "N/A");

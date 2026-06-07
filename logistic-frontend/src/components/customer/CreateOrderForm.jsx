@@ -38,6 +38,22 @@ export default function CreateOrderForm({
     routeInfo,
     handleCreateOrder
 }) {
+
+    const formatDuration = (totalMinutes) => {
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        return hours > 0
+            ? `${hours} giờ ${minutes > 0 ? `${minutes} phút` : ''}`
+            : `${minutes} phút`;
+    };
+
+    const estimatedPrice = routeInfo
+        ? Math.max(
+            20000,
+            Math.round(routeInfo.distanceKm * 15000)
+        )
+        : 0;
+
     return (
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-y-auto max-h-[85vh] space-y-4">
             <form onSubmit={handleCreateOrder} className="space-y-4">
@@ -57,7 +73,6 @@ export default function CreateOrderForm({
                     </div>
                 )}
 
-                {/* Người gửi */}
                 <div className="grid grid-cols-2 gap-3">
                     <div>
                         <label className="block text-xs font-bold text-gray-600 uppercase mb-1">
@@ -86,7 +101,6 @@ export default function CreateOrderForm({
                     </div>
                 </div>
 
-                {/* Người nhận */}
                 <div className="grid grid-cols-2 gap-3">
                     <div>
                         <label className="block text-xs font-bold text-gray-600 uppercase mb-1">
@@ -117,7 +131,6 @@ export default function CreateOrderForm({
                     </div>
                 </div>
 
-                {/* Chọn chế độ */}
                 <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-100 rounded-xl">
                     <button
                         type="button"
@@ -142,7 +155,6 @@ export default function CreateOrderForm({
                     </button>
                 </div>
 
-                {/* Điểm lấy */}
                 <div className="space-y-2">
                     <div>
                         <label className="block text-xs font-bold text-gray-600 uppercase mb-1">
@@ -185,7 +197,6 @@ export default function CreateOrderForm({
                     </div>
                 </div>
 
-                {/* Điểm giao */}
                 <div className="space-y-2">
                     <div>
                         <label className="block text-xs font-bold text-gray-600 uppercase mb-1">
@@ -236,7 +247,12 @@ export default function CreateOrderForm({
 
                         <div>
                             ⏱️ Thời gian dự kiến:
-                            <b> {routeInfo.durationMin} phút</b>
+                            <b> {formatDuration(routeInfo.durationMin)}</b>
+                        </div>
+                        <div className="text-lg font-black text-green-600 border-t pt-2 mt-2">
+                            💰 Giá cước dự kiến:
+                            {' '}
+                            {estimatedPrice.toLocaleString()}đ
                         </div>
                     </div>
                 )}

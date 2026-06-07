@@ -1,61 +1,134 @@
-export default function OrderCard({ order, handleCancelOrder }) {
-    return (
-        <div className="p-4 rounded-xl border border-gray-100 bg-slate-50/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 hover:border-indigo-100 transition">
-            <div className="space-y-1 flex-1">
-                <div className="flex items-center gap-2">
-                    <span
-                        className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
-                            order.status === 'PENDING'
-                                ? 'bg-yellow-100 text-yellow-700'
-                                : order.status === 'ACCEPTED'
-                                ? 'bg-indigo-100 text-indigo-700'
-                                : order.status === 'COMPLETED'
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-gray-100 text-gray-600'
-                        }`}
-                    >
-                        {order.status}
-                    </span>
+import { useNavigate } from 'react-router-dom';
 
-                    <span className="font-mono text-[10px] text-gray-400">
-                        #{order.id.substring(0, 8)}
-                    </span>
+export default function OrderCard({
+    order,
+    handleCancelOrder
+}) {
+    const navigate = useNavigate();
+
+    const statusText = {
+        PENDING: 'Chờ tài xế',
+        ACCEPTED: 'Đã nhận đơn',
+        DELIVERING: 'Đang giao',
+        COMPLETED: 'Hoàn thành',
+        CANCELLED: 'Đã hủy'
+    };
+
+    const statusColor = {
+        PENDING: 'bg-yellow-100 text-yellow-700',
+        ACCEPTED: 'bg-blue-100 text-blue-700',
+        DELIVERING: 'bg-purple-100 text-purple-700',
+        COMPLETED: 'bg-green-100 text-green-700',
+        CANCELLED: 'bg-red-100 text-red-700'
+    };
+
+    return (
+        <div className="p-4 rounded-xl border border-gray-100 bg-slate-50 hover:border-indigo-200 transition">
+            <div className="flex justify-between items-start gap-3">
+                
+                <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`text-[10px] font-black px-2 py-1 rounded-full ${statusColor[order.status] || 'bg-gray-100 text-gray-700'}`}>
+                            {statusText[order.status] || order.status}
+                        </span>
+
+                        <span className="font-mono text-[10px] text-gray-400">
+                            #{order.id?.substring(0, 8)}
+                        </span>
+                    </div>
+
+                    <p className="text-xs text-gray-700 line-clamp-1">
+                        📍 <b>Từ:</b> {order.pickupAddress}
+                    </p>
+
+                    <p className="text-xs text-gray-600 line-clamp-1">
+                        🏁 <b>Đến:</b> {order.deliveryAddress}
+                    </p>
+
+                    <div className="flex flex-wrap gap-4 text-xs">
+                        <span>📏 <b>{order.distanceKm || 0} km</b></span>
+                        <span>💰 <b>{(order.price || 0).toLocaleString()}đ</b></span>
+                    </div>
+
+                    <p className="text-xs text-slate-500">
+                        👤 <b>Tài xế:</b>{' '}
+                        <span className="font-semibold text-slate-700">
+                            {order.driver?.fullName || order.driverName || 'Đang tìm tài xế...'}
+                        </span>
+                    </p>
+
+                    {(order.driver?.phone || order.driverPhone) && (
+                        <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                            📞 <b>Số điện thoại:</b>{' '}
+                            <span className="font-mono font-semibold text-slate-700">
+                                {order.driver?.phone || order.driverPhone}
+                            </span>
+                        </p>
+                    )}
+                    
+                    {order.createdAt && (
+                        <p className="text-xs text-slate-400">
+                            🕒 {new Date(order.updatedAt || order.createdAt).toLocaleString('vi-VN')}
+                        </p>
+                    )}
+
+                    <div className="flex flex-wrap items-center gap-1 mt-2 text-[10px] font-semibold">
+                        <span className="px-2 py-1 rounded bg-green-100 text-green-700">Tạo đơn</span>
+                        <span>→</span>
+                        <span className={`px-2 py-1 rounded ${['ACCEPTED', 'DELIVERING', 'COMPLETED'].includes(order.status) ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                            Nhận đơn
+                        </span>
+                        <span>→</span>
+                        <span className={`px-2 py-1 rounded ${['DELIVERING', 'COMPLETED'].includes(order.status) ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                            Lấy hàng
+                        </span>
+                        <span>→</span>
+                        <span className={`px-2 py-1 rounded ${order.status === 'COMPLETED' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                            Hoàn tất
+                        </span>
+                    </div>
                 </div>
 
-                <p className="text-xs text-gray-700 font-medium line-clamp-1">
-                    📍 <b>Từ:</b> {order.pickupAddress}
-                </p>
-
-                <p className="text-xs text-gray-500 font-medium line-clamp-1">
-                    🏁 <b>Đến:</b> {order.deliveryAddress}
-                </p>
-
-                <p className="text-xs text-slate-400">
-                    👤 Tài xế nhận:{' '}
-                    <span className="text-slate-700 font-bold">
-                        {order.driverName ||
-                            'Đang quét tìm tài xế gần nhất...'}
+                <div className="flex flex-col items-end gap-2 justify-between h-full min-h-[100px]">
+                    <span className="text-lg font-black text-indigo-700">
+                        {(order.price || 0).toLocaleString()}đ
                     </span>
-                </p>
-            </div>
 
-            <div className="text-right flex md:flex-col justify-between items-center md:items-end w-full md:w-auto border-t md:border-none pt-2 md:pt-0">
-                <span className="text-sm font-black text-gray-800">
-                    {(order.price || 0).toLocaleString()}đ
-                </span>
+                    {order.status === 'PENDING' && (
+                        <button
+                            onClick={() => handleCancelOrder(order.id)}
+                            className="text-xs font-bold text-red-500 bg-red-100 hover:bg-red-200 px-2 py-1 rounded transition active:scale-95"
+                        >
+                            Hủy đơn
+                        </button>
+                    )}
 
-                {order.status === 'PENDING' ? (
+                    {order.status === 'ACCEPTED' && (
+                        <span className="text-[11px] px-2 py-1 rounded bg-amber-50 text-amber-700 border border-amber-200">
+                            🛵 Tài xế đang đến
+                        </span>
+                    )}
+
+                    {order.status === 'DELIVERING' && (
+                        <span className="text-[11px] px-2 py-1 rounded bg-purple-50 text-purple-700 border border-purple-200">
+                            📦 Đang vận chuyển
+                        </span>
+                    )}
+
+                    {order.status === 'COMPLETED' && (
+                        <span className="text-[11px] px-2 py-1 rounded bg-green-50 text-green-700 border border-green-200">
+                            ✅ Giao thành công
+                        </span>
+                    )}
+
                     <button
-                        onClick={() => handleCancelOrder(order.id)}
-                        className="mt-1 text-xs font-bold text-red-500 hover:text-red-700 hover:underline transition"
+                        onClick={() => navigate(`/customer/track/${order.id}`)}
+                        className="text-[11px] font-black text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-xl transition shadow-sm active:scale-95 flex items-center gap-1 mt-auto"
                     >
-                        ❌ Hủy đơn
+                        Theo dõi đơn hàng
                     </button>
-                ) : order.status === 'ACCEPTED' ? (
-                    <span className="mt-1 text-[11px] font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded italic">
-                        🛵 Xe đang đến, không thể tự hủy
-                    </span>
-                ) : null}
+                </div>
+
             </div>
         </div>
     );

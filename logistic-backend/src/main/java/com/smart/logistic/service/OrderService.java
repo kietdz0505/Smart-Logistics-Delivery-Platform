@@ -1,9 +1,10 @@
 package com.smart.logistic.service;
 
-import com.smart.logistic.dto.AcceptOrderRequest;
 import com.smart.logistic.dto.CreateOrderRequest;
+import com.smart.logistic.dto.OrderResponse;
 import com.smart.logistic.entity.DriverProfile;
 import com.smart.logistic.entity.Order;
+import com.smart.logistic.entity.OrderStatus;
 
 import java.util.List;
 import java.util.UUID;
@@ -14,17 +15,27 @@ public interface OrderService {
 
     List<DriverProfile> findDriversForOrder(UUID orderId);
 
-    Order acceptOrder(AcceptOrderRequest request);
+    Order acceptOrder(UUID orderId);
 
-    List<Order> getOrdersByStatus(String status);
+    Order getOrderById(UUID orderId);
+
+    List<Order> getOrdersByStatus(OrderStatus status);
 
     Order completeOrder(UUID orderId);
 
-    List<Order> getOrdersByDriverAndStatus(UUID driverId, String status);
+    List<Order> getOrdersByDriverAndStatus(UUID driverId, OrderStatus status);
 
     Order customerCancelOrder(UUID orderId, String reason);
 
     Order driverCancelOrder(UUID orderId, String reason);
 
     List<Order> getOrdersByCustomer(UUID customerId);
+
+    List<Order> getActiveOrdersForDriver(UUID driverId);
+
+    Order startDelivery(UUID orderId);
+
+    OrderResponse getOrderDetailsWithDriverLocation(UUID orderId);
+
+
 }

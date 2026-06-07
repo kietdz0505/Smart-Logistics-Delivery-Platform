@@ -31,5 +31,5 @@ public class DriverProfile {
     private String status;
 
     @Column(name = "current_location", columnDefinition = "geometry(Point,4326)")
-    private Point currentLocation; // Tọa độ GPS hiện tại của tài xế
+    private Point currentLocation;
 }

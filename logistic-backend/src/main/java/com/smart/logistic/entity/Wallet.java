@@ -22,5 +22,5 @@ public class Wallet {
     private User user;
 
     @Column(nullable = false)
-    private BigDecimal balance = BigDecimal.ZERO; // Mặc định ví có 0đ
+    private BigDecimal balance = BigDecimal.ZERO;
 }

@@ -16,7 +16,6 @@ export default function RoutePath({
 
     const routingRef = useRef(null);
 
-    // Tạo routing control duy nhất 1 lần
     useEffect(() => {
         routingRef.current = L.Routing.control({
             waypoints: [],
@@ -50,7 +49,6 @@ export default function RoutePath({
         };
     }, [map]);
 
-    // Chỉ update waypoint
     useEffect(() => {
         if (
             !pickupLat ||

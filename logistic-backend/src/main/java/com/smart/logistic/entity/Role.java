@@ -16,5 +16,5 @@ public class Role {
     private Integer id;
 
     @Column(nullable = false, unique = true)
-    private String name; // Ví dụ: "ROLE_ADMIN", "ROLE_CUSTOMER", "ROLE_DRIVER"
+    private String name;
 }

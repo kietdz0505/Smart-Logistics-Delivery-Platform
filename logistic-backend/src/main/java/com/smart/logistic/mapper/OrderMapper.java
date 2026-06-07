@@ -25,10 +25,8 @@ public class OrderMapper {
         response.setDeliveryAddress(order.getDeliveryAddress());
         response.setDistanceKm(order.getDistanceKm());
         response.setPrice(order.getPrice());
-        response.setStatus(order.getStatus());
+        response.setStatus(order.getStatus().name());
         response.setCreatedAt(order.getCreatedAt());
-
-        // Đọc an toàn tọa độ X (Longitude) và Y (Latitude) từ PostGIS Point
         if (order.getPickupLocation() != null) {
             response.setPickupLongitude(order.getPickupLocation().getX());
             response.setPickupLatitude(order.getPickupLocation().getY());
@@ -37,6 +35,11 @@ public class OrderMapper {
         if (order.getDeliveryLocation() != null) {
             response.setDeliveryLongitude(order.getDeliveryLocation().getX());
             response.setDeliveryLatitude(order.getDeliveryLocation().getY());
+        }
+
+        if(order.getDriver() != null){
+            response.setDriverName(order.getDriver().getFullName());
+            response.setDriverPhone(order.getDriver().getPhone());
         }
 
         return response;
@@ -52,6 +55,7 @@ public class OrderMapper {
         map.put("deliveryAddress", order.getDeliveryAddress());
         map.put("price", order.getPrice());
         map.put("updatedAt", order.getUpdatedAt());
+        map.put("distanceKm", order.getDistanceKm());
         return map;
     }
 
@@ -65,7 +69,17 @@ public class OrderMapper {
         map.put("price", order.getPrice());
         map.put("status", order.getStatus());
         map.put("createdAt", order.getCreatedAt());
-        map.put("driverName", order.getDriver() != null ? order.getDriver().getFullName() : "Đang tìm tài xế...");
+        map.put("updatedAt", order.getUpdatedAt());
+        map.put("distanceKm", order.getDistanceKm());
+
+        if (order.getDriver() != null) {
+            map.put("driverName", order.getDriver().getFullName());
+            map.put("driverPhone", order.getDriver().getPhone());
+        } else {
+            map.put("driverName", "Đang tìm tài xế...");
+            map.put("driverPhone", null);
+        }
+
         return map;
     }
 }
