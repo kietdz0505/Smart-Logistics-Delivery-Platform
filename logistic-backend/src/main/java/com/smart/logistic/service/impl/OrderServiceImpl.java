@@ -1,5 +1,8 @@
 package com.smart.logistic.service;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
+import com.smart.logistic.config.CloudinaryConfig;
 import com.smart.logistic.dto.CreateOrderRequest;
 import com.smart.logistic.dto.OrderResponse;
 import com.smart.logistic.entity.DriverProfile;
@@ -16,10 +19,15 @@ import com.smart.logistic.repository.WalletRepository;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -32,8 +40,9 @@ public class OrderServiceImpl implements OrderService {
     private final AuthUtil authUtil;
     private final OrderMapper orderMapper;
     private final SimpMessagingTemplate messagingTemplate;
+    private final Cloudinary cloudinary;
 
-    public OrderServiceImpl(OrderRepository orderRepository, UserRepository userRepository, DriverProfileRepository driverProfileRepository, WalletRepository walletRepository, AuthUtil authUtil, OrderMapper orderMapper, SimpMessagingTemplate messagingTemplate) {
+    public OrderServiceImpl(OrderRepository orderRepository, UserRepository userRepository, DriverProfileRepository driverProfileRepository, WalletRepository walletRepository, AuthUtil authUtil, OrderMapper orderMapper, SimpMessagingTemplate messagingTemplate, Cloudinary cloudinary) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.driverProfileRepository = driverProfileRepository;
@@ -41,6 +50,7 @@ public class OrderServiceImpl implements OrderService {
         this.authUtil = authUtil;
         this.orderMapper = orderMapper;
         this.messagingTemplate = messagingTemplate;
+        this.cloudinary = cloudinary;
     }
 
     private void sendOrderUpdateRealtime(Order order) {
@@ -124,6 +134,9 @@ public class OrderServiceImpl implements OrderService {
         order.setDriver(driver);
         order.setStatus(OrderStatus.ACCEPTED);
 
+        String otp = String.format("%04d", new Random().nextInt(10000));
+        order.setPickupOtp(otp);
+
         Order savedOrder = orderRepository.save(order);
 
         orderRepository.flush();
@@ -156,21 +169,34 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Transactional
-    public Order completeOrder(UUID orderId) {
-        Order order = orderRepository.findByIdForUpdate(orderId).orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng!"));
+    public Order completeOrderWithImage(UUID orderId, MultipartFile podImage) {
+        Order order = orderRepository.findByIdForUpdate(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng!"));
 
         if (!order.getDriver().getId().equals(authUtil.getCurrentUserId())) {
             throw new RuntimeException("Không phải đơn của bạn!");
         }
 
         if (order.getStatus() != OrderStatus.DELIVERING) {
-            throw new RuntimeException("Đơn hàng phải DELIVERING!");
+            throw new RuntimeException("Đơn hàng phải ở trạng thái DELIVERING!");
         }
 
-        var driverWallet = walletRepository.findByUser(order.getDriver()).orElseThrow(() -> new RuntimeException("Tài xế chưa có ví!"));
+        try {
+            // Upload lên Cloudinary
+            Map uploadResult = cloudinary.uploader().upload(podImage.getBytes(), ObjectUtils.emptyMap());
+            String imageUrl = uploadResult.get("url").toString();
 
+            // Lưu URL vào order
+            order.setProofImageUrl(imageUrl);
+            order.setProofUploadedAt(LocalDateTime.now());
+
+        } catch (IOException e) {
+            throw new RuntimeException("Lỗi upload ảnh lên Cloudinary: " + e.getMessage());
+        }
+
+        var driverWallet = walletRepository.findByUser(order.getDriver())
+                .orElseThrow(() -> new RuntimeException("Tài xế chưa có ví!"));
         driverWallet.setBalance(driverWallet.getBalance().add(order.getPrice()));
-
         walletRepository.save(driverWallet);
 
         order.setStatus(OrderStatus.COMPLETED);
@@ -190,7 +216,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Transactional
-    public Order startDelivery(UUID orderId) {
+    public Order startDelivery(UUID orderId, String otp) {
         Order order = orderRepository.findByIdForUpdate(orderId).orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng!"));
 
         if (!order.getDriver().getId().equals(authUtil.getCurrentUserId())) {
@@ -199,6 +225,10 @@ public class OrderServiceImpl implements OrderService {
 
         if (order.getStatus() != OrderStatus.ACCEPTED) {
             throw new RuntimeException("Chỉ ACCEPTED mới chuyển DELIVERING!");
+        }
+
+        if (order.getPickupOtp() == null || !order.getPickupOtp().equals(otp)) {
+            throw new RuntimeException("Mã PIN không chính xác!");
         }
 
         order.setStatus(OrderStatus.DELIVERING);

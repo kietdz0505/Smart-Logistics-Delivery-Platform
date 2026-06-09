@@ -27,6 +27,7 @@ public class OrderMapper {
         response.setPrice(order.getPrice());
         response.setStatus(order.getStatus().name());
         response.setCreatedAt(order.getCreatedAt());
+        response.setPickupOtp(order.getPickupOtp());
         if (order.getPickupLocation() != null) {
             response.setPickupLongitude(order.getPickupLocation().getX());
             response.setPickupLatitude(order.getPickupLocation().getY());

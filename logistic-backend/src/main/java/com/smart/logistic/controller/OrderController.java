@@ -10,9 +10,11 @@ import com.smart.logistic.mapper.OrderMapper;
 import com.smart.logistic.repository.WalletRepository;
 import com.smart.logistic.service.OrderService;
 import com.smart.logistic.utils.AuthUtil;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 
@@ -87,16 +89,14 @@ public class OrderController {
     @PreAuthorize("hasRole('DRIVER')")
     @PutMapping("/start-delivery")
     public ResponseEntity<?> startDelivery(@RequestBody Map<String, String> request) {
-
         try {
             UUID orderId = UUID.fromString(request.get("orderId"));
-
-            orderService.startDelivery(orderId);
-
+            String otp = request.get("otp");
+            orderService.startDelivery(orderId, otp);
             return ResponseEntity.ok("Đơn hàng đang được giao");
 
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
         }
     }
 
@@ -110,18 +110,30 @@ public class OrderController {
     }
 
     @PreAuthorize("hasRole('DRIVER')")
-    @PutMapping("/complete")
-    public ResponseEntity<?> completeOrder(@RequestBody Map<String, String> request) {
+    @PutMapping(value = "/complete", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> completeOrder(
+            @RequestParam("orderId") String orderIdStr,
+            @RequestParam("podImage") MultipartFile podImage) {
 
         try {
-            UUID orderId = UUID.fromString(request.get("orderId"));
+            UUID orderId = UUID.fromString(orderIdStr);
 
-            orderService.completeOrder(orderId);
+            if (podImage == null || podImage.isEmpty()) {
+                return ResponseEntity.badRequest().body("Lỗi: Vui lòng đính kèm ảnh xác minh giao hàng!");
+            }
 
-            return ResponseEntity.ok(Map.of("status", "success", "message", "🏁 Đơn hàng đã được hoàn thành thành công!", "orderId", orderId));
+            orderService.completeOrderWithImage(orderId, podImage);
 
+            return ResponseEntity.ok(Map.of(
+                    "status", "success",
+                    "message", "Đơn hàng đã được hoàn thành thành công và đã lưu bằng chứng ảnh!",
+                    "orderId", orderId
+            ));
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("ID đơn hàng không hợp lệ!");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.status(500).body("Lỗi hệ thống: " + e.getMessage());
         }
     }
 

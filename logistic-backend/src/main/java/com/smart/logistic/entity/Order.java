@@ -76,6 +76,15 @@ public class Order {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "pickup_otp", length = 4)
+    private String pickupOtp;
+
+    @Column(name = "proof_image_url", length = 500)
+    private String proofImageUrl;
+
+    @Column(name = "proof_uploaded_at")
+    private LocalDateTime proofUploadedAt;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

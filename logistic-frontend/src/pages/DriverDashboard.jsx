@@ -1,13 +1,16 @@
 import { useState, useEffect, useContext, useRef } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import axiosClient from '../api/axiosClient';
+import useWallet from '../hooks/useWallet';
+
+import { useDriverSocket } from '../hooks/useDriverSocket';
+import { useChatNotifications } from '../hooks/useChatNotifications';
+import { useDriverLocation } from '../hooks/useDriverLocation';
+
 import OrderList from '../components/driver/OrderList';
 import DriverHistory from '../components/driver/DriverHistory';
 import DriverHeader from '../components/driver/DriverHeader';
 import DriverTabs from '../components/driver/DriverTabs';
-import useWallet from '../hooks/useWallet';
-import SockJS from 'sockjs-client';
-import Stomp from 'stompjs';
 
 export default function DriverDashboard() {
     const { user, logout } = useContext(AuthContext);
@@ -17,14 +20,27 @@ export default function DriverDashboard() {
     const [historyOrders, setHistoryOrders] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [maxRadius, setMaxRadius] = useState(5);
+
     const { walletBalance, fetchWalletBalance } = useWallet();
 
-    const [maxRadius, setMaxRadius] = useState(5);
-    const [currentDriverLoc, setCurrentDriverLoc] = useState(null);
+    // Sử dụng Custom Hooks
+    const { stompClient, isConnected } = useDriverSocket(user?.id, setOrders);
+    const { currentDriverLoc } = useDriverLocation(activeTab === 'online');
+    useChatNotifications(activeOrders);
 
-    const watchOnlineGeoIdRef = useRef(null);
-    const stompClientRef = useRef(null);
-    const [isConnected, setIsConnected] = useState(false);
+    // --- Business Logic ---
+    useEffect(() => {
+        if (activeTab === 'online' && isConnected && currentDriverLoc && user?.id) {
+            stompClient.send("/app/driver/screen-online", {}, JSON.stringify({
+                driverId: user.id,
+                latitude: currentDriverLoc.lat,
+                longitude: currentDriverLoc.lng,
+                maxRadius: maxRadius
+            }));
+        } else if (activeTab === 'active') fetchActiveOrders();
+        else if (activeTab === 'history') fetchHistoryOrders();
+    }, [activeTab, currentDriverLoc, maxRadius, isConnected, user?.id]);
 
     const fetchActiveOrders = async () => {
         try {
@@ -42,63 +58,6 @@ export default function DriverDashboard() {
         finally { setLoading(false); }
     };
 
-    useEffect(() => {
-        if (!user?.id) return;
-
-        const socket = new SockJS('http://localhost:8080/ws');
-        const stompClient = Stomp.over(socket);
-        stompClient.debug = null; 
-        stompClientRef.current = stompClient;
-
-        stompClient.connect({}, () => {
-            setIsConnected(true);
-            stompClient.subscribe(`/topic/orders/driver/${user.id}`, (message) => {
-                if (message.body) {
-                    const data = JSON.parse(message.body);
-                    setOrders(data);
-                    setLoading(false);
-                }
-            });
-        });
-
-        return () => { 
-            if (stompClientRef.current) {
-                stompClientRef.current.disconnect(); 
-                setIsConnected(false);
-            }
-        };
-    }, [user?.id]);
-
-    useEffect(() => {
-        if (activeTab === 'online' && isConnected && currentDriverLoc && user?.id) {
-            stompClientRef.current.send("/app/driver/screen-online", {}, JSON.stringify({
-                driverId: user.id,
-                latitude: currentDriverLoc.lat,
-                longitude: currentDriverLoc.lng,
-                maxRadius: maxRadius
-            }));
-        }
-    }, [currentDriverLoc, maxRadius, isConnected, activeTab, user?.id]);
-
-    useEffect(() => {
-        if (activeTab === 'online') {
-            setLoading(true); 
-            watchOnlineGeoIdRef.current = navigator.geolocation.watchPosition(
-                (pos) => {
-                    setCurrentDriverLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-                },
-                () => {
-                    setCurrentDriverLoc({ lat: 10.762622, lng: 106.660172 });
-                },
-                { enableHighAccuracy: true, timeout: 5000 }
-            );
-        } else {
-            if (watchOnlineGeoIdRef.current) navigator.geolocation.clearWatch(watchOnlineGeoIdRef.current);
-            if (activeTab === 'active') fetchActiveOrders();
-            if (activeTab === 'history') fetchHistoryOrders();
-        }
-    }, [activeTab]);
-
     const handleAcceptOrder = async (orderId) => {
         try {
             await axiosClient.put('/orders/accept', { orderId });
@@ -106,15 +65,25 @@ export default function DriverDashboard() {
         } catch (err) { setError('Nhận đơn thất bại!'); }
     };
 
-    const handleStartDelivery = async (orderId) => {
-        await axiosClient.put('/orders/start-delivery', { orderId });
-        fetchActiveOrders();
+    const handleStartDelivery = async (orderId, otp) => {
+        try {
+            await axiosClient.put('/orders/start-delivery', { orderId, otp });
+            fetchActiveOrders();
+        } catch (error) {
+            alert(`Lỗi: ${error.response?.data?.message || "Mã OTP không chính xác!"}`);
+        }
     };
 
-    const handleCompleteOrder = async (orderId) => {
-        await axiosClient.put('/orders/complete', { orderId });
-        fetchActiveOrders();
-        fetchWalletBalance();
+    const handleCompleteOrder = async (orderId, imageFile) => {
+        const formData = new FormData();
+        formData.append("orderId", orderId);
+        formData.append("podImage", imageFile);
+        try {
+            await axiosClient.put('/orders/complete', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+            fetchActiveOrders();
+            fetchWalletBalance();
+            alert("Đơn hàng đã được hoàn tất!");
+        } catch (error) { alert("Lỗi khi tải ảnh lên. Vui lòng thử lại!"); }
     };
 
     const handleCancelOrder = async (orderId) => {
@@ -146,7 +115,7 @@ export default function DriverDashboard() {
                         orders={activeTab === 'online' ? orders : activeOrders}
                         loading={loading}
                         activeTab={activeTab}
-                        stompClient={stompClientRef.current}
+                        stompClient={stompClient}
                         onAccept={handleAcceptOrder}
                         onStartDelivery={handleStartDelivery}
                         onComplete={handleCompleteOrder}

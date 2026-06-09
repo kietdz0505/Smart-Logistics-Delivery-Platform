@@ -28,4 +28,5 @@ public class OrderResponse {
     private String driverPhone;
     private Double driverLatitude;
     private Double driverLongitude;
+    private String pickupOtp;
 }
