@@ -1,5 +1,20 @@
 import { useNavigate } from 'react-router-dom';
 
+import {
+    MapPin,
+    Flag,
+    Route,
+    Wallet,
+    UserRound,
+    Phone,
+    Clock3,
+    Navigation,
+    Truck,
+    CircleCheck,
+    XCircle,
+    MapPinned
+} from 'lucide-react';
+
 export default function OrderCard({
     order,
     handleCancelOrder
@@ -15,17 +30,34 @@ export default function OrderCard({
     };
 
     const statusColor = {
-        PENDING: 'bg-yellow-100 text-yellow-700',
-        ACCEPTED: 'bg-blue-100 text-blue-700',
-        DELIVERING: 'bg-purple-100 text-purple-700',
-        COMPLETED: 'bg-green-100 text-green-700',
-        CANCELLED: 'bg-red-100 text-red-700'
+        PENDING:
+            'bg-amber-50 text-amber-700 border border-amber-200',
+
+        ACCEPTED:
+            'bg-blue-50 text-blue-700 border border-blue-200',
+
+        DELIVERING:
+            'bg-indigo-50 text-indigo-700 border border-indigo-200',
+
+        COMPLETED:
+            'bg-emerald-50 text-emerald-700 border border-emerald-200',
+
+        CANCELLED:
+            'bg-red-50 text-red-700 border border-red-200'
     };
 
     return (
-        <div className="p-4 rounded-xl border border-gray-100 bg-slate-50 hover:border-indigo-200 transition">
+        <div className="
+                        p-4
+                        rounded-2xl
+                        border border-slate-200
+                        bg-white
+                        hover:border-indigo-300
+                        hover:shadow-md
+                        transition-all
+                    ">
             <div className="flex justify-between items-start gap-3">
-                
+
                 <div className="flex-1 space-y-2">
                     <div className="flex items-center gap-2 flex-wrap">
                         <span className={`text-[10px] font-black px-2 py-1 rounded-full ${statusColor[order.status] || 'bg-gray-100 text-gray-700'}`}>
@@ -37,38 +69,69 @@ export default function OrderCard({
                         </span>
                     </div>
 
-                    <p className="text-xs text-gray-700 line-clamp-1">
-                        📍 <b>Từ:</b> {order.pickupAddress}
+                    <p className="text-xs text-slate-700 flex items-start gap-2">
+                        <MapPin className="w-3.5 h-3.5 mt-0.5 text-emerald-600 flex-shrink-0" />
+                        <span className="line-clamp-1">
+                            <b>Từ:</b> {order.pickupAddress}
+                        </span>
                     </p>
 
-                    <p className="text-xs text-gray-600 line-clamp-1">
-                        🏁 <b>Đến:</b> {order.deliveryAddress}
+                    <p className="text-xs text-slate-700 flex items-start gap-2">
+                        <Flag className="w-3.5 h-3.5 mt-0.5 text-red-500 flex-shrink-0" />
+                        <span className="line-clamp-1">
+                            <b>Đến:</b> {order.deliveryAddress}
+                        </span>
                     </p>
 
-                    <div className="flex flex-wrap gap-4 text-xs">
-                        <span>📏 <b>{order.distanceKm || 0} km</b></span>
-                        <span>💰 <b>{(order.price || 0).toLocaleString()}đ</b></span>
+                    <div className="flex flex-wrap gap-4 text-xs text-slate-700">
+
+                        <span className="flex items-center gap-1">
+                            <Route className="w-3.5 h-3.5 text-blue-600" />
+                            <b>{order.distanceKm || 0} km</b>
+                        </span>
+
+                        <span className="flex items-center gap-1">
+                            <Wallet className="w-3.5 h-3.5 text-green-600" />
+                            <b>{(order.price || 0).toLocaleString()}đ</b>
+                        </span>
+
                     </div>
 
-                    <p className="text-xs text-slate-500">
-                        👤 <b>Tài xế:</b>{' '}
-                        <span className="font-semibold text-slate-700">
-                            {order.driver?.fullName || order.driverName || 'Đang tìm tài xế...'}
+                    <p className="text-xs text-slate-500 flex items-center gap-2">
+                        <UserRound className="w-3.5 h-3.5" />
+
+                        <span>
+                            <b>Tài xế:</b>{' '}
+                            <span className="font-semibold text-slate-700">
+                                {order.driver?.fullName ||
+                                    order.driverName ||
+                                    'Đang tìm tài xế...'}
+                            </span>
                         </span>
                     </p>
 
                     {(order.driver?.phone || order.driverPhone) && (
-                        <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                            📞 <b>Số điện thoại:</b>{' '}
-                            <span className="font-mono font-semibold text-slate-700">
-                                {order.driver?.phone || order.driverPhone}
+                        <p className="text-xs text-slate-500 flex items-center gap-2">
+                            <Phone className="w-3.5 h-3.5" />
+
+                            <span>
+                                <b>Số điện thoại:</b>{' '}
+                                <span className="font-mono font-semibold text-slate-700">
+                                    {order.driver?.phone ||
+                                        order.driverPhone}
+                                </span>
                             </span>
                         </p>
                     )}
-                    
+
                     {order.createdAt && (
-                        <p className="text-xs text-slate-400">
-                            🕒 {new Date(order.updatedAt || order.createdAt).toLocaleString('vi-VN')}
+                        <p className="text-xs text-slate-400 flex items-center gap-2">
+                            <Clock3 className="w-3 h-3" />
+
+                            {new Date(
+                                order.updatedAt ||
+                                order.createdAt
+                            ).toLocaleString('vi-VN')}
                         </p>
                     )}
 
@@ -90,7 +153,7 @@ export default function OrderCard({
                 </div>
 
                 <div className="flex flex-col items-end gap-2 justify-between h-full min-h-[100px]">
-                    <span className="text-lg font-black text-indigo-700">
+                    <span className="text-xl font-black text-indigo-700">
                         {(order.price || 0).toLocaleString()}đ
                     </span>
 
@@ -104,28 +167,48 @@ export default function OrderCard({
                     )}
 
                     {order.status === 'ACCEPTED' && (
-                        <span className="text-[11px] px-2 py-1 rounded bg-amber-50 text-amber-700 border border-amber-200">
-                            🛵 Tài xế đang đến
+                        <span className="text-[11px] px-2 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 flex items-center gap-1">
+                            <Navigation className="w-3 h-3" />
+                            Tài xế đang đến
                         </span>
                     )}
 
                     {order.status === 'DELIVERING' && (
-                        <span className="text-[11px] px-2 py-1 rounded bg-purple-50 text-purple-700 border border-purple-200">
-                            📦 Đang vận chuyển
+                        <span className="text-[11px] px-2 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center gap-1">
+                            <Truck className="w-3 h-3" />
+                            Đang vận chuyển
                         </span>
                     )}
 
                     {order.status === 'COMPLETED' && (
-                        <span className="text-[11px] px-2 py-1 rounded bg-green-50 text-green-700 border border-green-200">
-                            ✅ Giao thành công
+                        <span className="text-[11px] px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                            <CircleCheck className="w-3 h-3" />
+                            Giao thành công
                         </span>
                     )}
 
                     <button
-                        onClick={() => navigate(`/customer/track/${order.id}`)}
-                        className="text-[11px] font-black text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-xl transition shadow-sm active:scale-95 flex items-center gap-1 mt-auto"
+                        onClick={() =>
+                            navigate(
+                                `/customer/track/${order.id}`
+                            )
+                        }
+                        className="
+                                        flex items-center gap-1.5
+                                        text-[11px]
+                                        font-black
+                                        text-white
+                                        bg-indigo-600
+                                        hover:bg-indigo-700
+                                        px-3 py-1.5
+                                        rounded-xl
+                                        transition
+                                        shadow-sm
+                                        active:scale-95
+                                    "
                     >
-                        Theo dõi đơn hàng
+                        <MapPinned className="w-3.5 h-3.5" />
+                        Theo dõi
                     </button>
                 </div>
 

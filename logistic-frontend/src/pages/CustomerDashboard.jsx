@@ -9,17 +9,20 @@ import OrdersList from '../components/customer/OrdersList';
 import OrderSummary from '../components/customer/OrderSummary';
 import { useOrderLogic } from '../hooks/useOrderLogic';
 import { useOrderSubscription } from '../hooks/useOrderSubscription';
+import Swal from 'sweetalert2';
 
 export default function CustomerDashboard() {
     const { user, logout } = useContext(AuthContext);
     const { walletBalance, fetchWalletBalance } = useWallet();
-    
+
     const [myOrders, setMyOrders] = useState([]);
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
     const [listLoading, setListLoading] = useState(false);
 
     // Sử dụng Hook logic cho form và các trạng thái liên quan
     const formProps = useOrderLogic(user, fetchWalletBalance);
-    
+
     // Hàm lấy danh sách đơn hàng
     const fetchMyOrders = useCallback(async (silent = false) => {
         if (!silent) setListLoading(true);
@@ -43,7 +46,7 @@ export default function CustomerDashboard() {
 
     const handleCancelOrder = async (orderId) => {
         if (!window.confirm('Bạn có chắc chắn muốn HỦY đơn hàng này?')) return;
-        
+
         formProps.setActionMessage('');
         formProps.setError('');
 
@@ -60,9 +63,32 @@ export default function CustomerDashboard() {
         }
     };
 
+    const handleLogout = async () => {
+        const result = await Swal.fire({
+            title: 'Đăng xuất?',
+            text: 'Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Đăng xuất',
+            cancelButtonText: 'Ở lại',
+            reverseButtons: true
+        });
+
+        if (result.isConfirmed) {
+            logout();
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Đã đăng xuất',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+    };
+
     return (
         <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
-            <CustomerHeader user={user} walletBalance={walletBalance} logout={logout} />
+            <CustomerHeader user={user} walletBalance={walletBalance} logout={handleLogout} />
 
             <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-6">
                 <div className="lg:col-span-5 flex flex-col gap-4">
@@ -72,11 +98,11 @@ export default function CustomerDashboard() {
 
                 <div className="lg:col-span-7 flex flex-col gap-6">
                     <DeliveryMap {...formProps} />
-                    <OrdersList 
-                        myOrders={myOrders} 
-                        listLoading={listLoading} 
-                        fetchMyOrders={fetchMyOrders} 
-                        handleCancelOrder={handleCancelOrder} 
+                    <OrdersList
+                        myOrders={myOrders}
+                        listLoading={listLoading}
+                        fetchMyOrders={fetchMyOrders}
+                        handleCancelOrder={handleCancelOrder}
                     />
                 </div>
             </div>

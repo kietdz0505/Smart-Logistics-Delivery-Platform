@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { db } from '../../firebase';
 import { collection, addDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
+import Swal from 'sweetalert2';
 
 export const useOrderCardLogic = (order, stompClient, onAccept, onComplete, onCancel, onStartDelivery) => {
     const [submitting, setSubmitting] = useState(false);
@@ -10,7 +11,12 @@ export const useOrderCardLogic = (order, stompClient, onAccept, onComplete, onCa
     const [chatMessages, setChatMessages] = useState([]);
     const [unreadCount, setUnreadCount] = useState(() => Number(localStorage.getItem(`driver_unread_${order?.id}`) || 0));
     const [inputMessage, setInputMessage] = useState("");
-    const [otpInput, setOtpInput] = useState("");
+    const [otpDigits, setOtpDigits] = useState([
+        '',
+        '',
+        '',
+        ''
+    ]);
     const [driverCurrentLoc, setDriverCurrentLoc] = useState(() => {
         try {
             const cached = localStorage.getItem('driver_last_known_loc');
@@ -22,6 +28,7 @@ export const useOrderCardLogic = (order, stompClient, onAccept, onComplete, onCa
     const chatEndRef = useRef(null);
     const isInitialLoadRef = useRef(true);
     const fileInputRef = useRef(null);
+    const otpRefs = useRef([]);
     const showChatBoxRef = useRef(false);
     const notificationSoundRef = useRef(new Audio('/message-notification.mp3'));
     const driverPhone = String(order?.driverPhone || "unknown");
@@ -79,7 +86,7 @@ export const useOrderCardLogic = (order, stompClient, onAccept, onComplete, onCa
             if (isInitialLoadRef.current) { isInitialLoadRef.current = false; return; }
             if (hasNewCustomerMessage) {
                 notificationSoundRef.current.currentTime = 0;
-                notificationSoundRef.current.play().catch(() => {});
+                notificationSoundRef.current.play().catch(() => { });
                 if (!showChatBoxRef.current) {
                     setUnreadCount(prev => { const next = prev + 1; localStorage.setItem(`driver_unread_${order.id}`, next); return next; });
                 }
@@ -96,10 +103,34 @@ export const useOrderCardLogic = (order, stompClient, onAccept, onComplete, onCa
         try {
             await addDoc(collection(db, 'chats', String(order.id), 'drivers', driverPhone, 'messages'), { senderType: "DRIVER", senderPhone: driverPhone, content: inputMessage.trim(), timestamp: new Date() });
             setInputMessage("");
-        } catch (error) { console.error("Lỗi gửi tin nhắn:", error); alert("Gửi tin nhắn thất bại!"); }
+        } catch (error) { console.error("Lỗi gửi tin nhắn:", error) }
     };
 
     const openChat = () => { setShowChatBox(true); setUnreadCount(0); if (order?.id) localStorage.removeItem(`driver_unread_${order.id}`); };
+
+    const handleOtpChange = (index, value) => {
+        if (!/^\d?$/.test(value)) return;
+
+        const updated = [...otpDigits];
+
+        updated[index] = value;
+
+        setOtpDigits(updated);
+
+        if (value && index < 3) {
+            otpRefs.current[index + 1]?.focus();
+        }
+    };
+
+    const handleOtpKeyDown = (index, e) => {
+        if (
+            e.key === 'Backspace' &&
+            !otpDigits[index] &&
+            index > 0
+        ) {
+            otpRefs.current[index - 1]?.focus();
+        }
+    };
 
     const getDistanceInMeters = (lat1, lon1, lat2, lon2) => {
         if (!lat1 || !lon1 || !lat2 || !lon2) return Infinity;
@@ -111,7 +142,53 @@ export const useOrderCardLogic = (order, stompClient, onAccept, onComplete, onCa
     const clickAccept = async () => { if (!submitting && order?.id) { setSubmitting(true); try { await onAccept(order.id); } finally { setSubmitting(false); } } };
     const clickStartDelivery = async (otp) => { if (!submitting && order?.id) { setSubmitting(true); try { await onStartDelivery(order.id, otp); } finally { setSubmitting(false); } } };
     const clickComplete = async () => { if (!submitting && order?.id) { setSubmitting(true); try { await onComplete(order.id); } finally { setSubmitting(false); } } };
-    const confirmAndCancel = async () => { if (submitting || !order?.id) return; if (window.confirm("Bạn có chắc chắn muốn HỦY cuốc xe này không?")) { setSubmitting(true); try { if (onCancel) await onCancel(order.id); } finally { setSubmitting(false); } } };
+    const confirmAndCancel = async () => {
+        if (submitting || !order?.id) return;
 
-    return { submitting, setSubmitting, showMap, setShowMap, realDistance, setRealDistance, showChatBox, setShowChatBox, chatMessages, unreadCount, inputMessage, setInputMessage, chatEndRef, otpInput, setOtpInput, fileInputRef, driverCurrentLoc, handleSendMessage, openChat, getDistanceInMeters, clickAccept, clickStartDelivery, clickComplete, confirmAndCancel };
+        const result = await Swal.fire({
+            title: 'Hủy cuốc xe?',
+            text: 'Đơn hàng sẽ quay lại trạng thái chờ tài xế nhận.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Hủy cuốc',
+            cancelButtonText: 'Quay lại',
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#64748b',
+            reverseButtons: true
+        });
+
+        if (!result.isConfirmed) return;
+
+        setSubmitting(true);
+
+        try {
+            await onCancel(order.id);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Đã hủy cuốc xe',
+                text: 'Đơn hàng đã được trả về hệ thống.',
+                timer: 1800,
+                showConfirmButton: false
+            });
+
+        } catch (error) {
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Hủy thất bại',
+                text: 'Vui lòng thử lại sau.'
+            });
+
+        } finally {
+            setSubmitting(false);
+        }
+    };
+    return {
+        submitting, setSubmitting, showMap, setShowMap, realDistance, setRealDistance, showChatBox, setShowChatBox, chatMessages, unreadCount, inputMessage, setInputMessage, chatEndRef, otpDigits,
+        setOtpDigits,
+        otpRefs,
+        handleOtpChange,
+        handleOtpKeyDown, fileInputRef, driverCurrentLoc, handleSendMessage, openChat, getDistanceInMeters, clickAccept, clickStartDelivery, clickComplete, confirmAndCancel
+    };
 };

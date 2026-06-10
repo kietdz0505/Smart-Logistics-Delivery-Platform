@@ -9,6 +9,10 @@ import {
 import MapClickHandler from './MapClickHandler';
 import MapCenterUpdater from './MapCenterUpdater';
 import RoutePath from './RoutePath';
+import {
+    pickupIcon,
+    deliveryIcon
+} from '../../utils/mapIcons';
 
 export default function DeliveryMap({
     mode,
@@ -31,7 +35,26 @@ export default function DeliveryMap({
     setRouteInfo
 }) {
     return (
-        <div className="bg-gray-200 rounded-2xl overflow-hidden shadow-sm border border-gray-100 h-[80vh] min-h-[350px]">
+        <div
+            className="
+                    bg-white
+                    rounded-2xl
+                    overflow-hidden
+                    border border-slate-200
+                    shadow-sm
+                    h-[80vh]
+                    min-h-[350px]
+                "
+        >
+            <div className="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between">
+                <h3 className="font-bold text-slate-800">
+                    Bản đồ điều phối
+                </h3>
+
+                <span className="text-xs text-slate-500">
+                    Chọn điểm lấy và điểm giao hàng
+                </span>
+            </div>
             <MapContainer
                 center={[21.0285, 105.8542]}
                 zoom={14}
@@ -65,41 +88,53 @@ export default function DeliveryMap({
                     setDeliveryAddress={setDeliveryAddress}
                 />
 
-                <Marker position={[pickupLat, pickupLng]}>
-
+                <Marker
+                    position={[pickupLat, pickupLng]}
+                    icon={pickupIcon}
+                >
                     <Tooltip
                         permanent
                         direction="top"
                         offset={[0, -15]}
                     >
-                        📍 Điểm lấy
+                        Điểm lấy hàng
                     </Tooltip>
-
                     <Popup>
-                        <div>
-                            <b>📍 Điểm lấy hàng</b>
-                            <br />
-                            {pickupAddress}
+                        <div className="min-w-[180px]">
+                            <p className="font-bold text-emerald-700 mb-1">
+                                Điểm lấy hàng
+                            </p>
+
+                            <p className="text-sm text-slate-600">
+                                {pickupAddress}
+                            </p>
                         </div>
                     </Popup>
 
                 </Marker>
 
-                <Marker position={[deliveryLat, deliveryLng]}>
+                <Marker
+                    position={[deliveryLat, deliveryLng]}
+                    icon={deliveryIcon}
+                >
 
                     <Tooltip
                         permanent
                         direction="top"
                         offset={[0, -15]}
                     >
-                        🏁 Điểm giao
+                        Điểm giao hàng
                     </Tooltip>
 
                     <Popup>
-                        <div>
-                            <b>🏁 Điểm giao hàng</b>
-                            <br />
-                            {deliveryAddress}
+                        <div className="min-w-[180px]">
+                            <p className="font-bold text-red-600 mb-1">
+                                Điểm giao hàng
+                            </p>
+
+                            <p className="text-sm text-slate-600">
+                                {deliveryAddress}
+                            </p>
                         </div>
                     </Popup>
 

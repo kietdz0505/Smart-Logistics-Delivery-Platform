@@ -1,3 +1,16 @@
+import {
+    PackagePlus,
+    TriangleAlert,
+    CircleCheck,
+    MapPin,
+    Flag,
+    Route,
+    Clock3,
+    Wallet,
+    LoaderCircle,
+    SendHorizonal
+} from 'lucide-react';
+
 import { geocodeAddress } from '../../utils/geocoding';
 
 export default function CreateOrderForm({
@@ -57,19 +70,22 @@ export default function CreateOrderForm({
     return (
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-y-auto max-h-[85vh] space-y-4">
             <form onSubmit={handleCreateOrder} className="space-y-4">
-                <h3 className="text-lg font-extrabold text-gray-800 border-b pb-2 flex items-center gap-2">
-                    <span>✍️</span> Tạo yêu cầu giao vận mới
+                <h3 className="text-lg font-extrabold text-gray-800 border-b pb-3 flex items-center gap-2">
+                    <PackagePlus className="w-5 h-5 text-indigo-600" />
+                    Tạo yêu cầu giao vận mới
                 </h3>
 
                 {error && (
-                    <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm font-medium border border-red-100">
-                        ⚠️ {error}
+                    <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm font-medium border border-red-100 flex items-center gap-2">
+                        <TriangleAlert className="w-4 h-4 flex-shrink-0" />
+                        {error}
                     </div>
                 )}
 
                 {actionMessage && (
-                    <div className="bg-green-50 text-green-700 p-3 rounded-xl text-xs font-bold border border-green-100">
-                        ✅ {actionMessage}
+                    <div className="bg-green-50 text-green-700 p-3 rounded-xl text-xs font-bold border border-green-100 flex items-center gap-2">
+                        <CircleCheck className="w-4 h-4 flex-shrink-0" />
+                        {actionMessage}
                     </div>
                 )}
 
@@ -135,23 +151,24 @@ export default function CreateOrderForm({
                     <button
                         type="button"
                         onClick={() => setMode('pickup')}
-                        className={`py-2 px-3 rounded-lg text-xs font-bold transition duration-200 ${mode === 'pickup'
+                        className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition duration-200 ${mode === 'pickup'
                             ? 'bg-indigo-600 text-white shadow-sm'
                             : 'text-gray-700 hover:bg-gray-200'
                             }`}
                     >
-                        📍 Điểm lấy hàng {mode === 'pickup' && '•'}
+                        <MapPin className="w-4 h-4" />
+                        Điểm lấy hàng
                     </button>
-
                     <button
                         type="button"
                         onClick={() => setMode('delivery')}
-                        className={`py-2 px-3 rounded-lg text-xs font-bold transition duration-200 ${mode === 'delivery'
+                        className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition duration-200 ${mode === 'delivery'
                             ? 'bg-orange-600 text-white shadow-sm'
                             : 'text-gray-700 hover:bg-gray-200'
                             }`}
                     >
-                        🏁 Điểm giao hàng {mode === 'delivery' && '•'}
+                        <Flag className="w-4 h-4" />
+                        Điểm giao hàng
                     </button>
                 </div>
 
@@ -239,20 +256,31 @@ export default function CreateOrderForm({
                 </div>
 
                 {routeInfo && (
-                    <div className="bg-blue-50 border border-blue-200 p-3 rounded-xl text-sm">
-                        <div>
-                            📏 Khoảng cách:
-                            <b> {routeInfo.distanceKm.toFixed(2)} km</b>
+                    <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl text-sm space-y-3">
+
+                        <div className="flex items-center gap-2">
+                            <Route className="w-4 h-4 text-blue-600" />
+                            <span>
+                                Khoảng cách:
+                                <b> {routeInfo.distanceKm.toFixed(2)} km</b>
+                            </span>
                         </div>
 
-                        <div>
-                            ⏱️ Thời gian dự kiến:
-                            <b> {formatDuration(routeInfo.durationMin)}</b>
+                        <div className="flex items-center gap-2">
+                            <Clock3 className="w-4 h-4 text-amber-600" />
+                            <span>
+                                Thời gian dự kiến:
+                                <b> {formatDuration(routeInfo.durationMin)}</b>
+                            </span>
                         </div>
-                        <div className="text-lg font-black text-green-600 border-t pt-2 mt-2">
-                            💰 Giá cước dự kiến:
-                            {' '}
-                            {estimatedPrice.toLocaleString()}đ
+
+                        <div className="flex items-center gap-2 text-lg font-black text-green-600 border-t pt-3">
+                            <Wallet className="w-5 h-5" />
+                            <span>
+                                Giá cước dự kiến:
+                                {' '}
+                                {estimatedPrice.toLocaleString()}đ
+                            </span>
                         </div>
                     </div>
                 )}
@@ -262,9 +290,17 @@ export default function CreateOrderForm({
                     disabled={loading}
                     className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow-md transition disabled:bg-gray-400 transform active:scale-95"
                 >
-                    {loading
-                        ? '⏳ Hệ thống đang tính toán cước phí...'
-                        : '🚀 Gửi Yêu Cầu Giao Hàng'}
+                    {loading ? (
+                        <span className="flex items-center justify-center gap-2">
+                            <LoaderCircle className="w-4 h-4 animate-spin" />
+                            Hệ thống đang tính toán cước phí...
+                        </span>
+                    ) : (
+                        <span className="flex items-center justify-center gap-2">
+                            <SendHorizonal className="w-4 h-4" />
+                            Gửi Yêu Cầu Giao Hàng
+                        </span>
+                    )}
                 </button>
             </form>
         </div>

@@ -266,22 +266,30 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     public Order driverCancelOrder(UUID orderId, String reason) {
-        Order order = orderRepository.findByIdForUpdate(orderId).orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
 
-        if (!order.getDriver().getId().equals(authUtil.getCurrentUserId())) {
+        Order order = orderRepository.findByIdForUpdate(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+
+        if (order.getDriver() == null ||
+                !order.getDriver().getId().equals(authUtil.getCurrentUserId())) {
             throw new RuntimeException("Không phải đơn của bạn!");
         }
 
-        if (order.getStatus() != OrderStatus.ACCEPTED && order.getStatus() != OrderStatus.DELIVERING) {
-            throw new RuntimeException("Không thể hủy ở trạng thái này!");
+        if (order.getStatus() != OrderStatus.ACCEPTED) {
+            throw new RuntimeException(
+                    "Không thể hủy sau khi đã lấy hàng");
         }
 
         order.setStatus(OrderStatus.PENDING);
         order.setDriver(null);
+
         Order savedOrder = orderRepository.save(order);
 
         sendOrderUpdateRealtime(savedOrder);
-        messagingTemplate.convertAndSend("/topic/orders/pending", savedOrder);
+        messagingTemplate.convertAndSend(
+                "/topic/orders/pending",
+                savedOrder
+        );
 
         return savedOrder;
     }

@@ -23,7 +23,6 @@ export default function ChatModal({
 
                         <div>
                             <h3 className="text-sm text-white font-black leading-none">
-                                Chat với Tài xế:{' '}
                                 {order?.driver?.fullName ||
                                     order?.driverName}
                             </h3>

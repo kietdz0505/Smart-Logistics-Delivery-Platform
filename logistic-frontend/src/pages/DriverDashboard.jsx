@@ -11,6 +11,9 @@ import OrderList from '../components/driver/OrderList';
 import DriverHistory from '../components/driver/DriverHistory';
 import DriverHeader from '../components/driver/DriverHeader';
 import DriverTabs from '../components/driver/DriverTabs';
+import Swal from 'sweetalert2';
+import { MapPin, Navigation } from 'lucide-react';
+import useCurrentAddress from '../hooks/useCurrentAddress';
 
 export default function DriverDashboard() {
     const { user, logout } = useContext(AuthContext);
@@ -20,13 +23,14 @@ export default function DriverDashboard() {
     const [historyOrders, setHistoryOrders] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const { currentDriverLoc } = useDriverLocation(activeTab === 'online');
     const [maxRadius, setMaxRadius] = useState(5);
 
     const { walletBalance, fetchWalletBalance } = useWallet();
 
     // Sử dụng Custom Hooks
     const { stompClient, isConnected } = useDriverSocket(user?.id, setOrders);
-    const { currentDriverLoc } = useDriverLocation(activeTab === 'online');
+    const currentAddress = useCurrentAddress( currentDriverLoc); 
     useChatNotifications(activeOrders);
 
     // --- Business Logic ---
@@ -70,7 +74,17 @@ export default function DriverDashboard() {
             await axiosClient.put('/orders/start-delivery', { orderId, otp });
             fetchActiveOrders();
         } catch (error) {
-            alert(`Lỗi: ${error.response?.data?.message || "Mã OTP không chính xác!"}`);
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'error',
+                title:
+                    error.response?.data?.message ||
+                    'OTP không hợp lệ',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+            });
         }
     };
 
@@ -91,18 +105,83 @@ export default function DriverDashboard() {
         fetchActiveOrders();
     };
 
+    const handleLogout = async () => {
+        const result = await Swal.fire({
+            title: 'Đăng xuất?',
+            text: 'Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Đăng xuất',
+            cancelButtonText: 'Ở lại',
+            reverseButtons: true
+        });
+
+        if (result.isConfirmed) {
+            logout();
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Đã đăng xuất',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+    };
+
     return (
         <div className="min-h-screen bg-slate-100 font-sans flex flex-col">
-            <DriverHeader user={user} walletBalance={walletBalance} onLogout={logout} />
+            <DriverHeader user={user} walletBalance={walletBalance} onLogout={handleLogout} />
             <main className="flex-1 p-6 max-w-5xl mx-auto w-full">
                 <DriverTabs activeTab={activeTab} setActiveTab={setActiveTab} counts={{ online: orders.length, active: activeOrders.length }} />
 
                 {activeTab === 'online' && (
-                    <div className="mb-6 p-4 bg-white border border-orange-100 rounded-2xl flex items-center justify-between">
-                        <input type="range" min="1" max="20" value={maxRadius}
-                            onChange={(e) => setMaxRadius(Number(e.target.value))}
-                            className="w-full mx-4 accent-orange-600" />
-                        <span className="text-sm font-black text-orange-600">{maxRadius} km</span>
+                    <div className="mb-6 p-4 bg-white border border-orange-100 rounded-2xl">
+                        <div className="mb-3">
+                            <h3 className="text-sm font-bold text-slate-800">
+                                Phạm vi tìm kiếm đơn hàng
+                            </h3>
+
+                            <p className="text-xs text-slate-500">
+                                Chỉ hiển thị các đơn hàng trong bán kính {maxRadius} km tính từ vị trí hiện tại của bạn.
+                            </p>
+
+                            {currentAddress && (
+                                <div className="mt-3 flex items-start gap-3 p-3 bg-orange-50 border border-orange-100 rounded-xl">
+                                    <div className="p-2 bg-white rounded-lg shadow-sm">
+                                        <MapPin className="w-4 h-4 text-orange-600" />
+                                    </div>
+
+                                    <div className="flex-1">
+                                        <p className="text-xs font-bold text-slate-700">
+                                            Vị trí hiện tại
+                                        </p>
+
+                                        <p className="text-xs text-slate-500 leading-relaxed">
+                                            {currentAddress}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            <span className="text-xs font-semibold text-slate-400">
+                                1 km
+                            </span>
+
+                            <input
+                                type="range"
+                                min="1"
+                                max="20"
+                                value={maxRadius}
+                                onChange={(e) => setMaxRadius(Number(e.target.value))}
+                                className="flex-1 accent-orange-600"
+                            />
+
+                            <span className="px-3 py-1 bg-orange-50 text-orange-600 rounded-lg text-sm font-black min-w-[70px] text-center">
+                                {maxRadius} km
+                            </span>
+                        </div>
                     </div>
                 )}
 
