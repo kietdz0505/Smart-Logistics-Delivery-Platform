@@ -9,7 +9,15 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class RegisterRequest {
+public class DriverRegisterRequest {
+
+    @NotBlank(message = "Vui lòng nhập họ tên")
+    @Size(
+            min = 2,
+            max = 100,
+            message = "Họ tên phải từ 2 đến 100 ký tự"
+    )
+    private String fullName;
 
     @NotBlank(message = "Vui lòng nhập số điện thoại")
     @Pattern(
@@ -25,15 +33,13 @@ public class RegisterRequest {
     )
     private String password;
 
-    @NotBlank(message = "Vui lòng nhập họ tên")
-    @Size(
-            min = 2,
-            max = 100,
-            message = "Họ tên phải từ 2 đến 100 ký tự"
-    )
-    private String fullName;
-
     @NotBlank(message = "Vui lòng nhập email")
     @Email(message = "Email không hợp lệ")
     private String email;
+
+    @NotBlank(message = "Vui lòng nhập biển số xe")
+    private String vehicleNumber;
+
+    @NotBlank(message = "Vui lòng chọn loại xe")
+    private String vehicleType;
 }

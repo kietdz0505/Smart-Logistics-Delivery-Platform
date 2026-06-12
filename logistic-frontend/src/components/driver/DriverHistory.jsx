@@ -8,8 +8,7 @@ import {
     CircleCheckBig
 } from 'lucide-react';
 
-export default function DriverHistory({ historyOrders }) {
-    const totalEarnings = historyOrders.reduce((sum, order) => sum + (order.price || 0), 0);
+export default function DriverHistory({ historyOrders, pageInfo, onPageChange }) {
 
     if (historyOrders.length === 0) {
         return (
@@ -51,7 +50,7 @@ export default function DriverHistory({ historyOrders }) {
                         </p>
 
                         <p className="text-3xl font-black mt-1 tracking-tight">
-                            {totalEarnings.toLocaleString()} ₫
+                            {(pageInfo?.totalEarnings ?? 0).toLocaleString('vi-VN')} ₫
                         </p>
                     </div>
 
@@ -62,7 +61,7 @@ export default function DriverHistory({ historyOrders }) {
                     <CircleCheckBig className="w-4 h-4" />
 
                     <span className="text-xs font-black uppercase tracking-wider">
-                        Đã giao {historyOrders.length} cuốc
+                        Đã giao {pageInfo?.totalElements ?? 0} cuốc
                     </span>
 
                 </div>
@@ -127,6 +126,30 @@ export default function DriverHistory({ historyOrders }) {
                     </table>
                 </div>
             </div>
+            {pageInfo && (
+                <div className="flex justify-center items-center gap-3 py-4">
+                    <button
+                        disabled={pageInfo.first}
+                        onClick={() => onPageChange(pageInfo.number - 1)}
+                        className="px-4 py-2 border rounded-lg disabled:opacity-50"
+                    >
+                        Trước
+                    </button>
+
+                    <span className="text-sm font-semibold">
+                        Trang {pageInfo.number + 1} / {pageInfo.totalPages}
+                    </span>
+
+                    <button
+                        disabled={pageInfo.last}
+                        onClick={() => onPageChange(pageInfo.number + 1)}
+                        className="px-4 py-2 border rounded-lg disabled:opacity-50"
+                    >
+                        Sau
+                    </button>
+                </div>
+            )}
         </div>
+
     );
 }

@@ -1,38 +1,66 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+
 import Login from './pages/Login';
+import Register from './pages/Register';
+import DriverRegister from './pages/DriverRegister';
+
 import CustomerDashboard from './pages/CustomerDashboard';
 import DriverDashboard from './pages/DriverDashboard';
 import OrderTracking from './pages/OrderTracking';
+import OrderHistory from './pages/CustomerHistoryPage';
+
 import ProtectedRoute from './components/ProtectedRoute';
+import CustomerLayout from './layouts/CustomerLayout';
+
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+
+          {/* Public Routes */}
           <Route
             path="/login"
             element={<Login />}
           />
 
           <Route
-            path="/customer"
-            element={
-              <ProtectedRoute role="ROLE_CUSTOMER">
-                <CustomerDashboard />
-              </ProtectedRoute>
-            }
+            path="/register"
+            element={<Register />}
           />
 
           <Route
-            path="/customer/track/:orderId"
-            element={
-              <ProtectedRoute role="ROLE_CUSTOMER">
-                <OrderTracking />
-              </ProtectedRoute>
-            }
+            path="/register-driver"
+            element={<DriverRegister />}
           />
 
+          {/* Customer */}
+          <Route
+            path="/customer"
+            element={
+              <ProtectedRoute role="ROLE_CUSTOMER">
+                <CustomerLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route
+              index
+              element={<CustomerDashboard />}
+            />
+
+            <Route
+              path="history"
+              element={<OrderHistory />}
+            />
+
+            <Route
+              path="track/:orderId"
+              element={<OrderTracking />}
+            />
+          </Route>
+
+          {/* Driver */}
           <Route
             path="/driver"
             element={
@@ -42,6 +70,7 @@ function App() {
             }
           />
 
+          {/* Fallback */}
           <Route
             path="*"
             element={
@@ -51,6 +80,7 @@ function App() {
               />
             }
           />
+
         </Routes>
       </BrowserRouter>
     </AuthProvider>

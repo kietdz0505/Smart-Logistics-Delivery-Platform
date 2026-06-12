@@ -1,13 +1,47 @@
-import { Package, Wallet, UserRound, LogOut } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import {
+    Package,
+    Wallet,
+    UserRound,
+    LogOut,
+    History,
+    User
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function CustomerHeader({
     user,
     walletBalance,
     logout
 }) {
-    return (
-        <header className="bg-white shadow-sm px-6 py-4 flex justify-between items-center border-b border-slate-200">
 
+    const navigate = useNavigate();
+
+    const [openMenu, setOpenMenu] = useState(false);
+    const menuRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (
+                menuRef.current &&
+                !menuRef.current.contains(event.target)
+            ) {
+                setOpenMenu(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+
+        return () =>
+            document.removeEventListener(
+                'mousedown',
+                handleClickOutside
+            );
+    }, []);
+
+    return (
+        <header className="relative z-[9999] sticky
+        top-0 bg-white shadow-sm px-6 py-4 flex justify-between items-center border-b border-slate-200">
             <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-indigo-50 border border-indigo-100">
                     <Package className="w-6 h-6 text-indigo-600" />
@@ -42,40 +76,120 @@ export default function CustomerHeader({
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4 border-l pl-6 border-slate-200">
-
-                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
-                        <UserRound className="w-5 h-5 text-emerald-600" />
-                    </div>
-
-                    <div className="text-right">
-                        <p className="text-sm font-bold text-slate-800">
-                            {user?.fullName || 'Khách hàng thành viên'}
-                        </p>
-
-                        <p className="text-xs text-emerald-600 font-semibold">
-                            Khách hàng thành viên
-                        </p>
-                    </div>
-
+                <div
+                    ref={menuRef}
+                    className="relative border-l pl-6 border-slate-200"
+                >
                     <button
-                        onClick={logout}
+                        onClick={() => setOpenMenu(!openMenu)}
                         className="
-                            flex items-center gap-2
-                            px-4 py-2
-                            bg-red-50
-                            text-red-600
-                            border border-red-200
-                            rounded-xl
-                            text-sm font-semibold
-                            hover:bg-red-100
-                            transition
-                            active:scale-95
-                        "
+                                flex items-center gap-4
+                                hover:bg-slate-50
+                                rounded-xl
+                                px-3 py-2
+                                transition
+                            "
                     >
-                        <LogOut className="w-4 h-4" />
-                        <span>Đăng xuất</span>
+                        <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                            <UserRound className="w-5 h-5 text-emerald-600" />
+                        </div>
+
+                        <div className="text-right">
+                            <p className="text-sm font-bold text-slate-800">
+                                {user?.fullName || 'Khách hàng thành viên'}
+                            </p>
+
+                            <p className="text-xs text-emerald-600 font-semibold">
+                                Khách hàng thành viên
+                            </p>
+                        </div>
                     </button>
+
+                    {openMenu && (
+                        <div
+                            className="
+                                    absolute
+                                    right-0
+                                    top-full
+                                    mt-2
+                                    w-64
+                                    bg-white
+                                    border
+                                    border-slate-200
+                                    rounded-2xl
+                                    shadow-xl
+                                    overflow-hidden
+                                    z-[10000]
+                                "
+                             >
+                            <div className="px-4 py-3 border-b bg-slate-50">
+                                <p className="font-bold text-slate-800">
+                                    {user?.fullName}
+                                </p>
+
+                                <p className="text-xs text-slate-500">
+                                    {user?.phone}
+                                </p>
+                            </div>
+
+                            <button
+                                onClick={() => {
+                                    setOpenMenu(false);
+                                    navigate('/customer/profile');
+                                }}
+                                className="
+                                        w-full
+                                        flex items-center gap-3
+                                        px-4 py-3
+                                        text-sm
+                                        hover:bg-slate-50
+                                        transition
+                                    "
+                            >
+                                <User className="w-4 h-4 text-slate-500" />
+                                Thông tin cá nhân
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    setOpenMenu(false);
+                                    navigate('/customer/history');
+                                }}
+                                className="
+                                            w-full
+                                            flex items-center gap-3
+                                            px-4 py-3
+                                            text-sm
+                                            hover:bg-slate-50
+                                            transition
+                                        "
+                            >
+                                <History className="w-4 h-4 text-slate-500" />
+                                Lịch sử đơn hàng
+                            </button>
+
+                            <div className="border-t" />
+
+                            <button
+                                onClick={() => {
+                                    setOpenMenu(false);
+                                    logout();
+                                }}
+                                className="
+                                            w-full
+                                            flex items-center gap-3
+                                            px-4 py-3
+                                            text-sm
+                                            text-red-600
+                                            hover:bg-red-50
+                                            transition
+                                        "
+                            >
+                                <LogOut className="w-4 h-4" />
+                                Đăng xuất
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         </header>

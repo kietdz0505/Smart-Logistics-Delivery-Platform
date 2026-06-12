@@ -14,7 +14,7 @@ export default function DriverHeader({
     onLogout
 }) {
     return (
-        <header className="bg-white shadow-sm px-6 py-4 flex justify-between items-center border-b border-slate-200">
+        <header className="sticky top-0 z-[9999] bg-white shadow-sm px-6 py-4 flex justify-between items-center border-b border-slate-200">
 
             <div className="flex items-center gap-3">
 

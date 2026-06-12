@@ -17,7 +17,7 @@ import {
 
 export default function OrderCard({
     order,
-    handleCancelOrder
+    handleCancelOrder = () => { }
 }) {
     const navigate = useNavigate();
 
@@ -187,29 +187,29 @@ export default function OrderCard({
                         </span>
                     )}
 
-                    <button
-                        onClick={() =>
-                            navigate(
-                                `/customer/track/${order.id}`
-                            )
-                        }
-                        className="
-                                        flex items-center gap-1.5
-                                        text-[11px]
-                                        font-black
-                                        text-white
-                                        bg-indigo-600
-                                        hover:bg-indigo-700
-                                        px-3 py-1.5
-                                        rounded-xl
-                                        transition
-                                        shadow-sm
-                                        active:scale-95
-                                    "
-                    >
-                        <MapPinned className="w-3.5 h-3.5" />
-                        Theo dõi
-                    </button>
+                    {!['COMPLETED', 'CANCELLED'].includes(order.status) && (
+                        <button
+                            onClick={() =>
+                                navigate(`/customer/track/${order.id}`)
+                            }
+                            className="
+            flex items-center gap-1.5
+            text-[11px]
+            font-black
+            text-white
+            bg-indigo-600
+            hover:bg-indigo-700
+            px-3 py-1.5
+            rounded-xl
+            transition
+            shadow-sm
+            active:scale-95
+        "
+                        >
+                            <MapPinned className="w-3.5 h-3.5" />
+                            Theo dõi
+                        </button>
+                    )}
                 </div>
 
             </div>

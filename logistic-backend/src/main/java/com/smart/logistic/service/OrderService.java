@@ -1,10 +1,12 @@
 package com.smart.logistic.service;
 
 import com.smart.logistic.dto.CreateOrderRequest;
+import com.smart.logistic.dto.DriverHistoryResponse;
 import com.smart.logistic.dto.OrderResponse;
 import com.smart.logistic.entity.DriverProfile;
 import com.smart.logistic.entity.Order;
 import com.smart.logistic.entity.OrderStatus;
+import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -24,13 +26,9 @@ public interface OrderService {
 
     Order completeOrderWithImage(UUID orderId, MultipartFile podImage);
 
-    List<Order> getOrdersByDriverAndStatus(UUID driverId, OrderStatus status);
-
     Order customerCancelOrder(UUID orderId, String reason);
 
     Order driverCancelOrder(UUID orderId, String reason);
-
-    List<Order> getOrdersByCustomer(UUID customerId);
 
     List<Order> getActiveOrdersForDriver(UUID driverId);
 
@@ -38,5 +36,9 @@ public interface OrderService {
 
     OrderResponse getOrderDetailsWithDriverLocation(UUID orderId);
 
+    List<Order> getActiveOrdersByCustomer(UUID customerId);
 
+    Page<Order> getHistoryOrdersByCustomer(UUID customerId, int page, int size);
+
+    DriverHistoryResponse getDriverHistory(UUID driverId, int page, int size);
 }

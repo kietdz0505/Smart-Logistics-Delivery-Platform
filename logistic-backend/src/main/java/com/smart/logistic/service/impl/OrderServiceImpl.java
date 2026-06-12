@@ -4,6 +4,7 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.smart.logistic.config.CloudinaryConfig;
 import com.smart.logistic.dto.CreateOrderRequest;
+import com.smart.logistic.dto.DriverHistoryResponse;
 import com.smart.logistic.dto.OrderResponse;
 import com.smart.logistic.entity.DriverProfile;
 import com.smart.logistic.entity.Order;
@@ -16,6 +17,10 @@ import com.smart.logistic.repository.UserRepository;
 import com.smart.logistic.utils.AuthUtil;
 import com.smart.logistic.utils.GeometryUtil;
 import com.smart.logistic.repository.WalletRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -121,15 +126,13 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("Chỉ DRIVER được nhận đơn!");
         }
 
-        Order order = orderRepository.findByIdForUpdate(orderId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng!"));
+        Order order = orderRepository.findByIdForUpdate(orderId).orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng!"));
 
         if (order.getStatus() != OrderStatus.PENDING) {
             throw new RuntimeException("Đơn hàng đã được nhận!");
         }
 
-        User driver = userRepository.findById(authUtil.getCurrentUserId())
-                .orElseThrow(() -> new RuntimeException("Driver không hợp lệ"));
+        User driver = userRepository.findById(authUtil.getCurrentUserId()).orElseThrow(() -> new RuntimeException("Driver không hợp lệ"));
 
         order.setDriver(driver);
         order.setStatus(OrderStatus.ACCEPTED);
@@ -141,8 +144,7 @@ public class OrderServiceImpl implements OrderService {
 
         orderRepository.flush();
 
-        Order fullyLoadedOrder = orderRepository.findById(savedOrder.getId())
-                .orElse(savedOrder);
+        Order fullyLoadedOrder = orderRepository.findById(savedOrder.getId()).orElse(savedOrder);
 
         sendOrderUpdateRealtime(fullyLoadedOrder);
 
@@ -170,8 +172,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     public Order completeOrderWithImage(UUID orderId, MultipartFile podImage) {
-        Order order = orderRepository.findByIdForUpdate(orderId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng!"));
+        Order order = orderRepository.findByIdForUpdate(orderId).orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng!"));
 
         if (!order.getDriver().getId().equals(authUtil.getCurrentUserId())) {
             throw new RuntimeException("Không phải đơn của bạn!");
@@ -194,8 +195,7 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("Lỗi upload ảnh lên Cloudinary: " + e.getMessage());
         }
 
-        var driverWallet = walletRepository.findByUser(order.getDriver())
-                .orElseThrow(() -> new RuntimeException("Tài xế chưa có ví!"));
+        var driverWallet = walletRepository.findByUser(order.getDriver()).orElseThrow(() -> new RuntimeException("Tài xế chưa có ví!"));
         driverWallet.setBalance(driverWallet.getBalance().add(order.getPrice()));
         walletRepository.save(driverWallet);
 
@@ -205,14 +205,6 @@ public class OrderServiceImpl implements OrderService {
         sendOrderUpdateRealtime(savedOrder);
 
         return savedOrder;
-    }
-
-    public List<Order> getOrdersByDriverAndStatus(UUID driverId, OrderStatus status) {
-        return orderRepository.findByDriverIdAndStatusOrderByUpdatedAtDesc(driverId, status);
-    }
-
-    public List<Order> getOrdersByCustomer(UUID customerId) {
-        return orderRepository.findByCustomerIdOrderByCreatedAtDesc(customerId);
     }
 
     @Transactional
@@ -241,15 +233,13 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     public Order customerCancelOrder(UUID orderId, String reason) {
-        Order order = orderRepository.findByIdForUpdate(orderId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+        Order order = orderRepository.findByIdForUpdate(orderId).orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
 
         if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.ACCEPTED) {
             throw new RuntimeException("Không thể hủy đơn hàng ở trạng thái hiện tại!");
         }
 
-        var customerWallet = walletRepository.findByUser(order.getCustomer())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy ví khách hàng!"));
+        var customerWallet = walletRepository.findByUser(order.getCustomer()).orElseThrow(() -> new RuntimeException("Không tìm thấy ví khách hàng!"));
 
         customerWallet.setBalance(customerWallet.getBalance().add(order.getPrice()));
         walletRepository.save(customerWallet);
@@ -267,17 +257,14 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public Order driverCancelOrder(UUID orderId, String reason) {
 
-        Order order = orderRepository.findByIdForUpdate(orderId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+        Order order = orderRepository.findByIdForUpdate(orderId).orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
 
-        if (order.getDriver() == null ||
-                !order.getDriver().getId().equals(authUtil.getCurrentUserId())) {
+        if (order.getDriver() == null || !order.getDriver().getId().equals(authUtil.getCurrentUserId())) {
             throw new RuntimeException("Không phải đơn của bạn!");
         }
 
         if (order.getStatus() != OrderStatus.ACCEPTED) {
-            throw new RuntimeException(
-                    "Không thể hủy sau khi đã lấy hàng");
+            throw new RuntimeException("Không thể hủy sau khi đã lấy hàng");
         }
 
         order.setStatus(OrderStatus.PENDING);
@@ -286,10 +273,7 @@ public class OrderServiceImpl implements OrderService {
         Order savedOrder = orderRepository.save(order);
 
         sendOrderUpdateRealtime(savedOrder);
-        messagingTemplate.convertAndSend(
-                "/topic/orders/pending",
-                savedOrder
-        );
+        messagingTemplate.convertAndSend("/topic/orders/pending", savedOrder);
 
         return savedOrder;
     }
@@ -300,8 +284,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     public Order getOrderById(UUID orderId) {
-        return orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng với mã: " + orderId));
+        return orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng với mã: " + orderId));
     }
 
     public OrderResponse getOrderDetailsWithDriverLocation(UUID orderId) {
@@ -309,8 +292,7 @@ public class OrderServiceImpl implements OrderService {
 
         OrderResponse response = orderMapper.toResponse(order);
 
-        if (order.getDriver() != null &&
-                (OrderStatus.ACCEPTED.equals(order.getStatus()) || OrderStatus.DELIVERING.equals(order.getStatus()))) {
+        if (order.getDriver() != null && (OrderStatus.ACCEPTED.equals(order.getStatus()) || OrderStatus.DELIVERING.equals(order.getStatus()))) {
 
             UUID driverUserId = order.getDriver().getId();
 
@@ -323,5 +305,28 @@ public class OrderServiceImpl implements OrderService {
         }
 
         return response;
+    }
+
+    public List<Order> getActiveOrdersByCustomer(UUID customerId) {
+        return orderRepository.findByCustomerIdAndStatusInOrderByCreatedAtDesc(customerId, List.of(OrderStatus.PENDING, OrderStatus.ACCEPTED, OrderStatus.DELIVERING));
+    }
+
+    public Page<Order> getHistoryOrdersByCustomer(UUID customerId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        return orderRepository.findByCustomerIdAndStatusOrderByCreatedAtDesc(customerId, OrderStatus.COMPLETED, pageable);
+    }
+
+    public DriverHistoryResponse getDriverHistory(UUID driverId, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt"));
+
+        Page<Order> orders = orderRepository.findByDriverIdAndStatus(driverId, OrderStatus.COMPLETED, pageable);
+
+        BigDecimal totalEarnings = orderRepository.getTotalEarningsByDriverAndStatus(driverId, OrderStatus.COMPLETED);
+
+        List<Map<String, Object>> content = orders.getContent().stream().map(orderMapper::toDriverHistoryMap).toList();
+
+        return DriverHistoryResponse.builder().content(content).empty(orders.isEmpty()).first(orders.isFirst()).last(orders.isLast()).number(orders.getNumber()).numberOfElements(orders.getNumberOfElements()).size(orders.getSize()).totalElements(orders.getTotalElements()).totalPages(orders.getTotalPages()).totalEarnings(totalEarnings).build();
     }
 }

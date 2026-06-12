@@ -10,6 +10,8 @@ import com.smart.logistic.mapper.OrderMapper;
 import com.smart.logistic.repository.WalletRepository;
 import com.smart.logistic.service.OrderService;
 import com.smart.logistic.utils.AuthUtil;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,6 +28,9 @@ public class OrderController {
     private final OrderMapper orderMapper;
     private final DriverMapper driverMapper;
     private final AuthUtil authUtil;
+
+    @Value("${app.pagination.default-size:5}")
+    private int defaultPageSize;
 
     public OrderController(OrderService orderService, WalletRepository walletRepository, OrderMapper orderMapper, DriverMapper driverMapper, AuthUtil authUtil) {
         this.orderService = orderService;
@@ -111,9 +116,7 @@ public class OrderController {
 
     @PreAuthorize("hasRole('DRIVER')")
     @PutMapping(value = "/complete", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> completeOrder(
-            @RequestParam("orderId") String orderIdStr,
-            @RequestParam("podImage") MultipartFile podImage) {
+    public ResponseEntity<?> completeOrder(@RequestParam("orderId") String orderIdStr, @RequestParam("podImage") MultipartFile podImage) {
 
         try {
             UUID orderId = UUID.fromString(orderIdStr);
@@ -124,11 +127,7 @@ public class OrderController {
 
             orderService.completeOrderWithImage(orderId, podImage);
 
-            return ResponseEntity.ok(Map.of(
-                    "status", "success",
-                    "message", "Đơn hàng đã được hoàn thành thành công và đã lưu bằng chứng ảnh!",
-                    "orderId", orderId
-            ));
+            return ResponseEntity.ok(Map.of("status", "success", "message", "Đơn hàng đã được hoàn thành thành công và đã lưu bằng chứng ảnh!", "orderId", orderId));
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("ID đơn hàng không hợp lệ!");
@@ -139,19 +138,45 @@ public class OrderController {
 
     @PreAuthorize("hasRole('DRIVER')")
     @GetMapping("/driver/history")
-    public ResponseEntity<?> getDriverHistory() {
+    public ResponseEntity<?> getDriverHistory(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(required = false) Integer size) {
 
-        List<Order> history = orderService.getOrdersByDriverAndStatus(authUtil.getCurrentUserId(), OrderStatus.COMPLETED);
+        int pageSize = (size != null) ? size : defaultPageSize;
 
-        return ResponseEntity.ok(history.stream().map(orderMapper::toDriverHistoryMap).toList());
+        return ResponseEntity.ok(
+                orderService.getDriverHistory(
+                        authUtil.getCurrentUserId(),
+                        page,
+                        pageSize
+                )
+        );
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/customer/history")
-    public ResponseEntity<?> getCustomerHistory() {
+    public ResponseEntity<?> getCustomerHistory(@RequestParam(defaultValue = "0") int page, @RequestParam(required = false) Integer size) {
+        try {
+
+            int pageSize = (size != null) ? size : defaultPageSize;
+
+            Page<Order> orders = orderService.getHistoryOrdersByCustomer(authUtil.getCurrentUserId(), page, pageSize);
+
+            Page<Map<String, Object>> result = orders.map(orderMapper::toCustomerHistoryMap);
+
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @GetMapping("/customer/active")
+    public ResponseEntity<?> getCustomerActiveOrders() {
 
         try {
-            List<Order> orders = orderService.getOrdersByCustomer(authUtil.getCurrentUserId());
+            List<Order> orders = orderService.getActiveOrdersByCustomer(authUtil.getCurrentUserId());
 
             List<Map<String, Object>> result = orders.stream().map(orderMapper::toCustomerHistoryMap).toList();
 

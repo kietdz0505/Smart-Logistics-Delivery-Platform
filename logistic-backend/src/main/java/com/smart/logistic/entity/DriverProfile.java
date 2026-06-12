@@ -30,6 +30,10 @@ public class DriverProfile {
     @Column(nullable = false)
     private String status;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "approval_status", nullable = false)
+    private DriverApprovalStatus approvalStatus;
+
     @Column(name = "current_location", columnDefinition = "geometry(Point,4326)")
     private Point currentLocation;
 }

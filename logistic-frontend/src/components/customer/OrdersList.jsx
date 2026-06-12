@@ -6,7 +6,6 @@ import {
     Clock3,
     Car,
     Truck,
-    CircleCheck,
     Inbox,
     LoaderCircle
 } from 'lucide-react';
@@ -37,12 +36,6 @@ export default function OrdersList({
             label: 'Đang giao',
             color: 'indigo',
             icon: Truck
-        },
-        {
-            id: 'COMPLETED',
-            label: 'Hoàn thành',
-            color: 'emerald',
-            icon: CircleCheck
         }
     ];
 
@@ -70,7 +63,7 @@ export default function OrdersList({
             <div className="flex justify-between items-center mb-4 flex-shrink-0">
                 <h2 className="text-base font-black text-slate-800 flex items-center gap-2">
                     <ClipboardList className="w-5 h-5 text-indigo-600" />
-                    Trạng thái đơn hàng của bạn
+                    Đơn hàng đang hoạt động
                 </h2>
 
                 <button

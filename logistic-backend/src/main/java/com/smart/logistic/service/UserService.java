@@ -1,5 +1,6 @@
 package com.smart.logistic.service;
 
+import com.smart.logistic.dto.DriverRegisterRequest;
 import com.smart.logistic.dto.LoginRequest;
 import com.smart.logistic.dto.RegisterRequest;
 import com.smart.logistic.entity.User;
@@ -20,4 +21,6 @@ public interface UserService {
     Wallet topUpWallet(com.smart.logistic.dto.TopUpRequest request);
 
     User findById(UUID id);
+
+    User registerDriver(DriverRegisterRequest request);
 }

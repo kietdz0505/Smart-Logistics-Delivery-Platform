@@ -13,11 +13,9 @@ export const useOrderLogic = (user, fetchWalletBalance) => {
     const [deliveryAddress, setDeliveryAddress] = useState('Trường Đại học Mở...');
     const [deliveryLat, setDeliveryLat] = useState(10.67905);
     const [deliveryLng, setDeliveryLng] = useState(106.69088);
-    
+
     const [loading, setLoading] = useState(false);
     const [createdOrder, setCreatedOrder] = useState(null);
-    const [error, setError] = useState('');
-    const [actionMessage, setActionMessage] = useState('');
     const [mode, setMode] = useState('pickup');
     const [routeInfo, setRouteInfo] = useState(null);
     const [mapCenter, setMapCenter] = useState({ lat: 10.88073, lng: 106.63917 });
@@ -25,7 +23,7 @@ export const useOrderLogic = (user, fetchWalletBalance) => {
     const handleCreateOrder = async (e) => {
         e.preventDefault();
         setLoading(true); setError(''); setActionMessage(''); setCreatedOrder(null);
-        
+
         const orderPayload = {
             phone: user?.phone, senderName, senderPhone, receiverName, receiverPhone,
             pickupAddress, pickupLongitude: pickupLng, pickupLatitude: pickupLat,
@@ -46,10 +44,39 @@ export const useOrderLogic = (user, fetchWalletBalance) => {
     };
 
     return {
-        senderName, setSenderName, senderPhone, setSenderPhone, receiverName, setReceiverName,
-        receiverPhone, setReceiverPhone, pickupAddress, setPickupAddress, pickupLat, setPickupLat,
-        pickupLng, setPickupLng, deliveryAddress, setDeliveryAddress, deliveryLat, setDeliveryLat,
-        deliveryLng, setDeliveryLng, loading, createdOrder, error, actionMessage, mode, setMode,
-        routeInfo, setRouteInfo, mapCenter, setMapCenter, handleCreateOrder
+        senderName,
+        setSenderName,
+        senderPhone,
+        setSenderPhone,
+        receiverName,
+        setReceiverName,
+        receiverPhone,
+        setReceiverPhone,
+        pickupAddress,
+        setPickupAddress,
+        pickupLat,
+        setPickupLat,
+        pickupLng,
+        setPickupLng,
+        deliveryAddress,
+        setDeliveryAddress,
+        deliveryLat,
+        setDeliveryLat,
+        deliveryLng,
+        setDeliveryLng,
+
+        loading,
+        createdOrder,
+
+        mode,
+        setMode,
+
+        routeInfo,
+        setRouteInfo,
+
+        mapCenter,
+        setMapCenter,
+
+        handleCreateOrder
     };
 };

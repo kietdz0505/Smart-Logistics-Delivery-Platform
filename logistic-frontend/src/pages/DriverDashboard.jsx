@@ -20,17 +20,19 @@ export default function DriverDashboard() {
     const [activeTab, setActiveTab] = useState('online');
     const [orders, setOrders] = useState([]);
     const [activeOrders, setActiveOrders] = useState([]);
-    const [historyOrders, setHistoryOrders] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const { currentDriverLoc } = useDriverLocation(activeTab === 'online');
     const [maxRadius, setMaxRadius] = useState(5);
 
+    const [historyOrders, setHistoryOrders] = useState([]);
+    const [pageInfo, setPageInfo] = useState(null);
+
     const { walletBalance, fetchWalletBalance } = useWallet();
 
     // Sử dụng Custom Hooks
     const { stompClient, isConnected } = useDriverSocket(user?.id, setOrders);
-    const currentAddress = useCurrentAddress( currentDriverLoc); 
+    const currentAddress = useCurrentAddress(currentDriverLoc);
     useChatNotifications(activeOrders);
 
     // --- Business Logic ---
@@ -53,13 +55,24 @@ export default function DriverDashboard() {
         } catch (err) { console.error("Lỗi lấy đơn đang chạy:", err); }
     };
 
-    const fetchHistoryOrders = async () => {
+
+
+    const fetchHistoryOrders = async (page = 0) => {
         setLoading(true);
+
         try {
-            const response = await axiosClient.get('/orders/driver/history');
-            setHistoryOrders(response.data || []);
-        } catch (err) { setError('Không thể tải lịch sử'); }
-        finally { setLoading(false); }
+            const response = await axiosClient.get(
+                `/orders/driver/history?page=${page}`
+            );
+
+            setHistoryOrders(response.data.content || []);
+            setPageInfo(response.data);
+
+        } catch (err) {
+            setError('Không thể tải lịch sử');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleAcceptOrder = async (orderId) => {
@@ -188,7 +201,11 @@ export default function DriverDashboard() {
                 {error && <div className="p-4 mb-4 bg-red-50 rounded-xl text-red-600 font-medium">{error}</div>}
 
                 {activeTab === 'history' ? (
-                    <DriverHistory historyOrders={historyOrders} />
+                    <DriverHistory
+                        historyOrders={historyOrders}
+                        pageInfo={pageInfo}
+                        onPageChange={fetchHistoryOrders}
+                    />
                 ) : (
                     <OrderList
                         orders={activeTab === 'online' ? orders : activeOrders}
