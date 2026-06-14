@@ -138,19 +138,11 @@ public class OrderController {
 
     @PreAuthorize("hasRole('DRIVER')")
     @GetMapping("/driver/history")
-    public ResponseEntity<?> getDriverHistory(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(required = false) Integer size) {
+    public ResponseEntity<?> getDriverHistory(@RequestParam(defaultValue = "0") int page, @RequestParam(required = false) Integer size) {
 
         int pageSize = (size != null) ? size : defaultPageSize;
 
-        return ResponseEntity.ok(
-                orderService.getDriverHistory(
-                        authUtil.getCurrentUserId(),
-                        page,
-                        pageSize
-                )
-        );
+        return ResponseEntity.ok(orderService.getDriverHistory(authUtil.getCurrentUserId(), page, pageSize));
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")

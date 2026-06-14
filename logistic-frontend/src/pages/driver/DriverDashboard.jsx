@@ -1,19 +1,19 @@
 import { useState, useEffect, useContext, useRef } from 'react';
-import { AuthContext } from '../context/AuthContext';
-import axiosClient from '../api/axiosClient';
-import useWallet from '../hooks/useWallet';
+import { AuthContext } from '../../context/AuthContext';
+import axiosClient from '../../api/axiosClient';
+import useWallet from '../../hooks/useWallet';
 
-import { useDriverSocket } from '../hooks/useDriverSocket';
-import { useChatNotifications } from '../hooks/useChatNotifications';
-import { useDriverLocation } from '../hooks/useDriverLocation';
+import { useDriverSocket } from '../../hooks/useDriverSocket';
+import { useChatNotifications } from '../../hooks/useChatNotifications';
+import { useDriverLocation } from '../../hooks/useDriverLocation';
 
-import OrderList from '../components/driver/OrderList';
-import DriverHistory from '../components/driver/DriverHistory';
-import DriverHeader from '../components/driver/DriverHeader';
-import DriverTabs from '../components/driver/DriverTabs';
+import OrderList from '../../components/driver/OrderList';
+import DriverHistory from '../../components/driver/DriverHistory';
+import DriverHeader from '../../components/driver/DriverHeader';
+import DriverTabs from '../../components/driver/DriverTabs';
 import Swal from 'sweetalert2';
 import { MapPin, Navigation } from 'lucide-react';
-import useCurrentAddress from '../hooks/useCurrentAddress';
+import useCurrentAddress from '../../hooks/useCurrentAddress';
 
 export default function DriverDashboard() {
     const { user, logout } = useContext(AuthContext);
@@ -143,7 +143,6 @@ export default function DriverDashboard() {
 
     return (
         <div className="min-h-screen bg-slate-100 font-sans flex flex-col">
-            <DriverHeader user={user} walletBalance={walletBalance} onLogout={handleLogout} />
             <main className="flex-1 p-6 max-w-5xl mx-auto w-full">
                 <DriverTabs activeTab={activeTab} setActiveTab={setActiveTab} counts={{ online: orders.length, active: activeOrders.length }} />
 

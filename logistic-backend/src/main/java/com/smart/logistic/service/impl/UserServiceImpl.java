@@ -1,11 +1,11 @@
 package com.smart.logistic.service.impl;
 
-import com.smart.logistic.dto.DriverRegisterRequest;
+import com.smart.logistic.dto.*;
 import com.smart.logistic.entity.*;
+import com.smart.logistic.mapper.UserMapper;
 import com.smart.logistic.repository.DriverProfileRepository;
+import com.smart.logistic.utils.AuthUtil;
 import com.smart.logistic.utils.JwtUtil;
-import com.smart.logistic.dto.LoginRequest;
-import com.smart.logistic.dto.RegisterRequest;
 import com.smart.logistic.repository.RoleRepository;
 import com.smart.logistic.repository.UserRepository;
 import com.smart.logistic.repository.WalletRepository;
@@ -14,7 +14,6 @@ import com.smart.logistic.service.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.smart.logistic.dto.LoginResponse;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -29,8 +28,10 @@ public class UserServiceImpl implements UserService {
     private final JwtUtil jwtUtil;
     private final RefreshTokenService refreshTokenService;
     private final DriverProfileRepository driverProfileRepository;
+    private final AuthUtil authUtil;
+    private final UserMapper userMapper;
 
-    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, WalletRepository walletRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, RefreshTokenService refreshTokenService, DriverProfileRepository driverProfileRepository) {
+    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, WalletRepository walletRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, RefreshTokenService refreshTokenService, DriverProfileRepository driverProfileRepository, AuthUtil authUtil, UserMapper userMapper) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.walletRepository = walletRepository;
@@ -38,6 +39,8 @@ public class UserServiceImpl implements UserService {
         this.jwtUtil = jwtUtil;
         this.refreshTokenService = refreshTokenService;
         this.driverProfileRepository = driverProfileRepository;
+        this.authUtil = authUtil;
+        this.userMapper = userMapper;
     }
 
     @Transactional
@@ -136,5 +139,39 @@ public class UserServiceImpl implements UserService {
         driverProfileRepository.save(profile);
 
         return savedUser;
+    }
+
+    @Override
+    public UserProfileResponse getMyProfile() {
+
+        User user = userRepository.findById(authUtil.getCurrentUserId()).orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        return userMapper.toProfileResponse(user);
+    }
+
+    @Override
+    @Transactional
+    public UserProfileResponse updateProfile(UpdateProfileRequest request) {
+
+        User user = userRepository.findById(authUtil.getCurrentUserId()).orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        if (request.getFullName() != null && !request.getFullName().trim().isEmpty()) {
+
+            user.setFullName(request.getFullName().trim());
+        }
+
+        if (request.getEmail() != null && !request.getEmail().trim().isEmpty()) {
+
+            user.setEmail(request.getEmail().trim());
+        }
+
+        if (request.getAvatarUrl() != null && !request.getAvatarUrl().trim().isEmpty()) {
+
+            user.setAvatarUrl(request.getAvatarUrl().trim());
+        }
+
+        userRepository.save(user);
+
+        return userMapper.toProfileResponse(user);
     }
 }

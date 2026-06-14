@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axiosClient from '../api/axiosClient';
+import axiosClient from '../../api/axiosClient';
 
 import {
   PackageCheck,

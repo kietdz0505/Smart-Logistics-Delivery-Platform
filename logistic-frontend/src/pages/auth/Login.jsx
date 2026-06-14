@@ -1,7 +1,7 @@
 import { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axiosClient from '../api/axiosClient';
-import { AuthContext } from '../context/AuthContext';
+import axiosClient from '../../api/axiosClient';
+import { AuthContext } from '../../context/AuthContext';
 import {
   PackageCheck,
   Phone,
@@ -42,6 +42,8 @@ export default function Login() {
         navigate('/customer');
       } else if (response.data.role === 'ROLE_DRIVER') {
         navigate('/driver');
+      } else if (response.data.role === 'ROLE_ADMIN') {
+        navigate('/admin');
       }
     } catch (err) {
       Swal.fire({

@@ -1,12 +1,9 @@
 package com.smart.logistic.service;
 
-import com.smart.logistic.dto.DriverRegisterRequest;
-import com.smart.logistic.dto.LoginRequest;
-import com.smart.logistic.dto.RegisterRequest;
+import com.smart.logistic.dto.*;
 import com.smart.logistic.entity.User;
 import com.smart.logistic.entity.Wallet;
 import org.springframework.stereotype.Service;
-import com.smart.logistic.dto.LoginResponse;
 
 import java.util.UUID;
 
@@ -18,9 +15,13 @@ public interface UserService {
 
     LoginResponse login(LoginRequest request);
 
-    Wallet topUpWallet(com.smart.logistic.dto.TopUpRequest request);
+    Wallet topUpWallet(TopUpRequest request);
 
     User findById(UUID id);
 
     User registerDriver(DriverRegisterRequest request);
+
+    UserProfileResponse getMyProfile();
+
+    UserProfileResponse updateProfile(UpdateProfileRequest request);
 }

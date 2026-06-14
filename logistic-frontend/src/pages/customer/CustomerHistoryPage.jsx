@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import axiosClient from '../api/axiosClient';
-import OrderCard from '../components/customer/OrderCard';
+import axiosClient from '../../api/axiosClient';
+import OrderCard from '../../components/customer/OrderCard';
 
 import {
     History,

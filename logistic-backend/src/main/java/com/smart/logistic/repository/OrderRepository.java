@@ -46,4 +46,13 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
                   AND o.status = :status
             """)
     BigDecimal getTotalEarningsByDriverAndStatus(UUID driverId, OrderStatus status);
+
+    long countByStatus(OrderStatus status);
+
+    @Query("""
+                SELECT COALESCE(SUM(o.price),0)
+                FROM Order o
+                WHERE o.status = 'COMPLETED'
+            """)
+    BigDecimal getTotalRevenue();
 }

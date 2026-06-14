@@ -9,20 +9,35 @@ import java.util.UUID;
 public class AuthUtil {
 
     public UUID getCurrentUserId() {
-        String id = (String) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
-
-        return UUID.fromString(id);
+        return UUID.fromString(
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication()
+                        .getPrincipal()
+                        .toString()
+        );
     }
 
-    public boolean isDriver() {
+    public String getCurrentRole() {
         return SecurityContextHolder
                 .getContext()
                 .getAuthentication()
                 .getAuthorities()
                 .stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_DRIVER"));
+                .findFirst()
+                .orElseThrow()
+                .getAuthority();
+    }
+
+    public boolean isDriver() {
+        return "ROLE_DRIVER".equals(getCurrentRole());
+    }
+
+    public boolean isCustomer() {
+        return "ROLE_CUSTOMER".equals(getCurrentRole());
+    }
+
+    public boolean isAdmin() {
+        return "ROLE_ADMIN".equals(getCurrentRole());
     }
 }

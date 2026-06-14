@@ -40,6 +40,10 @@ public class SecurityConfig {
 
                 .requestMatchers(HttpMethod.GET, "/api/orders/*").hasAnyAuthority("ROLE_CUSTOMER", "ROLE_DRIVER")
 
+                .requestMatchers(HttpMethod.GET, "/api/users/me").hasAnyAuthority("ROLE_CUSTOMER", "ROLE_DRIVER", "ROLE_ADMIN")
+
+                .requestMatchers(HttpMethod.PATCH, "/api/users/me").hasAnyAuthority("ROLE_CUSTOMER", "ROLE_DRIVER")
+
                 // DRIVER
                 .requestMatchers(HttpMethod.GET, "/api/orders/pending").hasAuthority("ROLE_DRIVER")
 
@@ -58,6 +62,10 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/wallets/balance").hasAnyAuthority("ROLE_DRIVER", "ROLE_CUSTOMER")
 
                 .requestMatchers(HttpMethod.GET, "/api/orders/*/nearby-drivers").hasAuthority("ROLE_DRIVER")
+
+                //ADMIN
+                .requestMatchers("/api/admin/**")
+                .hasAuthority("ROLE_ADMIN")
 
                 .anyRequest().authenticated());
 

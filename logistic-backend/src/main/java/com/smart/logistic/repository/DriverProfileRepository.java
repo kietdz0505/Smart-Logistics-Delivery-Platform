@@ -1,8 +1,11 @@
 package com.smart.logistic.repository;
 
+import com.smart.logistic.entity.DriverApprovalStatus;
 import com.smart.logistic.entity.DriverProfile;
 import com.smart.logistic.entity.User;
 import org.locationtech.jts.geom.Point;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,4 +25,8 @@ public interface DriverProfileRepository extends JpaRepository<DriverProfile, UU
 
     @Query(value = "SELECT * FROM driver_profiles d WHERE d.status = 'AVAILABLE' " + "AND ST_DistanceSphere(d.current_location, :pickupLocation) <= :radius", nativeQuery = true)
     List<DriverProfile> findNearbyAvailableDrivers(@Param("pickupLocation") Point pickupLocation, @Param("radius") double radiusInMeters);
+
+    long countByApprovalStatus(DriverApprovalStatus approvalStatus);
+
+    Page<DriverProfile> findByApprovalStatus(DriverApprovalStatus approvalStatus, Pageable pageable);
 }

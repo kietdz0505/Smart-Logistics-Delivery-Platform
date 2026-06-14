@@ -90,8 +90,19 @@ export default function CustomerHeader({
                                 transition
                             "
                     >
-                        <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
-                            <UserRound className="w-5 h-5 text-emerald-600" />
+                        <div className="w-10 h-10 rounded-full overflow-hidden bg-emerald-100 flex items-center justify-center">
+                            {user?.avatarUrl ? (
+                                <img
+                                    src={user.avatarUrl}
+                                    alt="avatar"
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        e.currentTarget.style.display = "none";
+                                    }}
+                                />
+                            ) : (
+                                <UserRound className="w-5 h-5 text-emerald-600" />
+                            )}
                         </div>
 
                         <div className="text-right">
@@ -121,7 +132,7 @@ export default function CustomerHeader({
                                     overflow-hidden
                                     z-[10000]
                                 "
-                             >
+                        >
                             <div className="px-4 py-3 border-b bg-slate-50">
                                 <p className="font-bold text-slate-800">
                                     {user?.fullName}

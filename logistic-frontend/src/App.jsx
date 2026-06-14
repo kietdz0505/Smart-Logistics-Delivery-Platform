@@ -1,17 +1,23 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 
-import Login from './pages/Login';
-import Register from './pages/Register';
-import DriverRegister from './pages/DriverRegister';
-
-import CustomerDashboard from './pages/CustomerDashboard';
-import DriverDashboard from './pages/DriverDashboard';
-import OrderTracking from './pages/OrderTracking';
-import OrderHistory from './pages/CustomerHistoryPage';
-
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
+import DriverRegister from './pages/auth/DriverRegister';
+import DriverLayout from './layouts/DriverLayout';
+import CustomerDashboard from './pages/customer/CustomerDashboard';
+import DriverDashboard from './pages/driver/DriverDashboard';
+import OrderTracking from './pages/customer/OrderTracking';
+import OrderHistory from './pages/customer/CustomerHistoryPage';
+import ProfilePage from './pages/ProfilePage';
 import ProtectedRoute from './components/ProtectedRoute';
 import CustomerLayout from './layouts/CustomerLayout';
+import AdminLayout from './layouts/AdminLayout';
+
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminDrivers from './pages/admin/AdminDrivers';
+import AdminOrders from './pages/admin/AdminOrders';
 
 function App() {
   return (
@@ -35,6 +41,7 @@ function App() {
             element={<DriverRegister />}
           />
 
+
           {/* Customer */}
           <Route
             path="/customer"
@@ -50,36 +57,77 @@ function App() {
             />
 
             <Route
-              path="history"
-              element={<OrderHistory />}
+              path="profile"
+              element={<ProfilePage />}
             />
 
             <Route
-              path="track/:orderId"
-              element={<OrderTracking />}
+              path="history"
+              element={<OrderHistory />}
             />
           </Route>
 
-          {/* Driver */}
           <Route
-            path="/driver"
+            path="/customer/track/:orderId"
             element={
-              <ProtectedRoute role="ROLE_DRIVER">
-                <DriverDashboard />
+              <ProtectedRoute role="ROLE_CUSTOMER">
+                <OrderTracking />
               </ProtectedRoute>
             }
           />
 
-          {/* Fallback */}
           <Route
-            path="*"
+            path="/driver"
             element={
-              <Navigate
-                to="/login"
-                replace
-              />
+              <ProtectedRoute role="ROLE_DRIVER">
+                <DriverLayout />
+              </ProtectedRoute>
             }
-          />
+          >
+            <Route
+              index
+              element={<DriverDashboard />}
+            />
+
+            <Route
+              path="profile"
+              element={<ProfilePage />}
+            />
+          </Route>
+
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute role="ROLE_ADMIN">
+                <AdminLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route
+              index
+              element={<AdminDashboard />}
+            />
+
+            <Route
+              path="users"
+              element={<AdminUsers />}
+            />
+
+            <Route
+              path="drivers"
+              element={<AdminDrivers />}
+            />
+
+            <Route
+              path="orders"
+              element={<AdminOrders />}
+            />
+
+            <Route
+              path="profile"
+              element={<ProfilePage />}
+            />
+          </Route>
 
         </Routes>
       </BrowserRouter>

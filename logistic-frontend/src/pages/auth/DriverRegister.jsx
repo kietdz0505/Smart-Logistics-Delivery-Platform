@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axiosClient from '../api/axiosClient';
+import axiosClient from '../../api/axiosClient';
 
 import {
     PackageCheck,
@@ -80,14 +80,14 @@ export default function DriverRegister() {
                 <div className="flex justify-center mb-4">
                     <div
                         className="
-              w-16
-              h-16
-              rounded-2xl
-              bg-emerald-100
-              flex
-              items-center
-              justify-center
-            "
+                        w-16
+                        h-16
+                        rounded-2xl
+                        bg-emerald-100
+                        flex
+                        items-center
+                        justify-center
+                        "
                     >
                         <PackageCheck
                             size={32}
@@ -110,18 +110,18 @@ export default function DriverRegister() {
                         type="button"
                         onClick={() => navigate('/register')}
                         className="
-      flex-1
-      flex
-      items-center
-      justify-center
-      gap-2
-      py-2.5
-      rounded-lg
-      text-gray-600
-      font-semibold
-      hover:bg-white
-      transition
-    "
+                            flex-1
+                            flex
+                            items-center
+                            justify-center
+                            gap-2
+                            py-2.5
+                            rounded-lg
+                            text-gray-600
+                            font-semibold
+                            hover:bg-white
+                            transition
+                            "
                     >
                         <User size={18} />
                         <span>Khách hàng</span>
@@ -129,18 +129,18 @@ export default function DriverRegister() {
 
                     <button
                         className="
-      flex-1
-      flex
-      items-center
-      justify-center
-      gap-2
-      py-2.5
-      rounded-lg
-      bg-emerald-600
-      text-white
-      font-semibold
-      shadow-sm
-    "
+                    flex-1
+                    flex
+                    items-center
+                    justify-center
+                    gap-2
+                    py-2.5
+                    rounded-lg
+                    bg-emerald-600
+                    text-white
+                    font-semibold
+                    shadow-sm
+                    "
                     >
                         <Truck size={18} />
                         <span>Tài xế</span>
@@ -162,12 +162,12 @@ export default function DriverRegister() {
                             <User
                                 size={18}
                                 className="
-                  absolute
-                  left-4
-                  top-1/2
-                  -translate-y-1/2
-                  text-gray-400
-                "
+                            absolute
+                            left-4
+                            top-1/2
+                            -translate-y-1/2
+                            text-gray-400
+                            "
                             />
 
                             <input
@@ -178,18 +178,18 @@ export default function DriverRegister() {
                                 onChange={handleChange}
                                 placeholder="Nguyễn Văn A"
                                 className="
-                  w-full
-                  pl-11
-                  pr-4
-                  py-3
-                  border
-                  border-gray-300
-                  rounded-xl
-                  outline-none
-                  transition
-                  focus:ring-2
-                  focus:ring-emerald-500
-                "
+                                w-full
+                                pl-11
+                                pr-4
+                                py-3
+                                border
+                                border-gray-300
+                                rounded-xl
+                                outline-none
+                                transition
+                                focus:ring-2
+                                focus:ring-emerald-500
+                                "
                             />
                         </div>
                     </div>
@@ -203,12 +203,12 @@ export default function DriverRegister() {
                             <Phone
                                 size={18}
                                 className="
-                  absolute
-                  left-4
-                  top-1/2
-                  -translate-y-1/2
-                  text-gray-400
-                "
+                                absolute
+                                left-4
+                                top-1/2
+                                -translate-y-1/2
+                                text-gray-400
+                                "
                             />
 
                             <input
@@ -219,18 +219,18 @@ export default function DriverRegister() {
                                 onChange={handleChange}
                                 placeholder="0901234567"
                                 className="
-                  w-full
-                  pl-11
-                  pr-4
-                  py-3
-                  border
-                  border-gray-300
-                  rounded-xl
-                  outline-none
-                  transition
-                  focus:ring-2
-                  focus:ring-emerald-500
-                "
+                                w-full
+                                pl-11
+                                pr-4
+                                py-3
+                                border
+                                border-gray-300
+                                rounded-xl
+                                outline-none
+                                transition
+                                focus:ring-2
+                                focus:ring-emerald-500
+                                "
                             />
                         </div>
                     </div>
@@ -244,12 +244,12 @@ export default function DriverRegister() {
                             <Mail
                                 size={18}
                                 className="
-                  absolute
-                  left-4
-                  top-1/2
-                  -translate-y-1/2
-                  text-gray-400
-                "
+                                absolute
+                                left-4
+                                top-1/2
+                                -translate-y-1/2
+                                text-gray-400
+                                "
                             />
 
                             <input
@@ -260,18 +260,18 @@ export default function DriverRegister() {
                                 onChange={handleChange}
                                 placeholder="example@gmail.com"
                                 className="
-                  w-full
-                  pl-11
-                  pr-4
-                  py-3
-                  border
-                  border-gray-300
-                  rounded-xl
-                  outline-none
-                  transition
-                  focus:ring-2
-                  focus:ring-emerald-500
-                "
+                                    w-full
+                                    pl-11
+                                    pr-4
+                                    py-3
+                                    border
+                                    border-gray-300
+                                    rounded-xl
+                                    outline-none
+                                    transition
+                                    focus:ring-2
+                                    focus:ring-emerald-500
+                                    "
                             />
                         </div>
                     </div>
@@ -285,12 +285,12 @@ export default function DriverRegister() {
                             <Lock
                                 size={18}
                                 className="
-                  absolute
-                  left-4
-                  top-1/2
-                  -translate-y-1/2
-                  text-gray-400
-                "
+                                absolute
+                                left-4
+                                top-1/2
+                                -translate-y-1/2
+                                text-gray-400
+                                "
                             />
 
                             <input
@@ -301,18 +301,18 @@ export default function DriverRegister() {
                                 onChange={handleChange}
                                 placeholder="Tối thiểu 6 ký tự"
                                 className="
-                  w-full
-                  pl-11
-                  pr-4
-                  py-3
-                  border
-                  border-gray-300
-                  rounded-xl
-                  outline-none
-                  transition
-                  focus:ring-2
-                  focus:ring-emerald-500
-                "
+                                w-full
+                                pl-11
+                                pr-4
+                                py-3
+                                border
+                                border-gray-300
+                                rounded-xl
+                                outline-none
+                                transition
+                                focus:ring-2
+                                focus:ring-emerald-500
+                                "
                             />
                         </div>
                     </div>
@@ -326,12 +326,12 @@ export default function DriverRegister() {
                             <Car
                                 size={18}
                                 className="
-                  absolute
-                  left-4
-                  top-1/2
-                  -translate-y-1/2
-                  text-gray-400
-                "
+                            absolute
+                            left-4
+                            top-1/2
+                            -translate-y-1/2
+                            text-gray-400
+                            "
                             />
 
                             <input
@@ -342,18 +342,18 @@ export default function DriverRegister() {
                                 onChange={handleChange}
                                 placeholder="59A1-12345"
                                 className="
-                  w-full
-                  pl-11
-                  pr-4
-                  py-3
-                  border
-                  border-gray-300
-                  rounded-xl
-                  outline-none
-                  transition
-                  focus:ring-2
-                  focus:ring-emerald-500
-                "
+                                w-full
+                                pl-11
+                                pr-4
+                                py-3
+                                border
+                                border-gray-300
+                                rounded-xl
+                                outline-none
+                                transition
+                                focus:ring-2
+                                focus:ring-emerald-500
+                                "
                             />
                         </div>
                     </div>
@@ -369,17 +369,17 @@ export default function DriverRegister() {
                             value={formData.vehicleType}
                             onChange={handleChange}
                             className="
-                w-full
-                px-4
-                py-3
-                border
-                border-gray-300
-                rounded-xl
-                outline-none
-                transition
-                focus:ring-2
-                focus:ring-emerald-500
-              "
+                            w-full
+                            px-4
+                            py-3
+                            border
+                            border-gray-300
+                            rounded-xl
+                            outline-none
+                            transition
+                            focus:ring-2
+                            focus:ring-emerald-500
+                        "
                         >
                             <option value="">
                                 -- Chọn loại xe --
@@ -403,35 +403,35 @@ export default function DriverRegister() {
                         type="submit"
                         disabled={loading}
                         className="
-              w-full
-              bg-emerald-600
-              hover:bg-emerald-700
-              text-white
-              font-bold
-              py-3
-              rounded-xl
-              shadow-lg
-              transition
-              disabled:opacity-70
-              disabled:cursor-not-allowed
-              flex
-              items-center
-              justify-center
-              gap-2
-            "
+                            w-full
+                            bg-emerald-600
+                            hover:bg-emerald-700
+                            text-white
+                            font-bold
+                            py-3
+                            rounded-xl
+                            shadow-lg
+                            transition
+                            disabled:opacity-70
+                            disabled:cursor-not-allowed
+                            flex
+                            items-center
+                            justify-center
+                            gap-2
+                            "
                     >
                         {loading ? (
                             <>
                                 <div
                                     className="
-                    w-4
-                    h-4
-                    border-2
-                    border-white
-                    border-t-transparent
-                    rounded-full
-                    animate-spin
-                  "
+                                    w-4
+                                    h-4
+                                    border-2
+                                    border-white
+                                    border-t-transparent
+                                    rounded-full
+                                    animate-spin
+                                "
                                 />
                                 Đang xử lý...
                             </>
@@ -455,11 +455,11 @@ export default function DriverRegister() {
                         type="button"
                         onClick={() => navigate('/login')}
                         className="
-              mt-1
-              text-indigo-600
-              font-semibold
-              hover:underline
-            "
+                        mt-1
+                        text-indigo-600
+                        font-semibold
+                        hover:underline
+                        "
                     >
                         Đăng nhập
                     </button>
